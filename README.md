@@ -10,3 +10,9 @@
 2. Install apk to Profile
 > adb push <apk_path> /data/local/tmp/android.apk
 > adb shell pm install -r -t --user <user_id> /data/local/tmp/android.apk
+
+## Test Cases
+
+1. Read & Write file by MediaStore within DualApp.
+2. File Uri/FilePath Convert within DualApp.
+3. Handle sharing file  within DualApp.
