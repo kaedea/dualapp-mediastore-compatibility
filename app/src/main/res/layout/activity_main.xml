@@ -35,7 +35,7 @@
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:onClick="onWriteImg"
-            android:text="Write IMG\n2SD" />
+            android:text="Write IMG\n2Gallery" />
 
         <Button
             android:textSize="10sp"
@@ -43,8 +43,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:layout_weight="1"
-            android:onClick="onReadImgByUri"
-            android:text="Read IMG byUri" />
+            android:onClick="onFilePath2Uri"
+            android:text="FilePath\n2Uri" />
 
         <Button
             android:textSize="10sp"
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:layout_weight="1"
-            android:onClick="onReadImgByPath"
-            android:text="Read IMG byPath" />
+            android:onClick="onUri2FilePath"
+            android:text="Uri\n2FilePath" />
     </LinearLayout>
 </RelativeLayout>

@@ -35,7 +35,7 @@
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:onClick="onWriteImg"
-            android:text="Write IMG\n2SD" />
+            android:text="Write IMG\n2Gallery" />
 
         <Button
             android:textSize="10sp"

@@ -12,14 +12,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DualAppMediastoreTest">
-        <activity android:name="com.kaedea.mediastore.dualappcompat.MainActivity">
-        </activity>
-        <activity android:name="com.kaedea.mediastore.dualappcompat.SaveImgActivity">
+        <activity android:name="com.kaedea.mediastore.dualappcompat.ConvertActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name="com.kaedea.mediastore.dualappcompat.SaveImgActivity">
         </activity>
     </application>
 
