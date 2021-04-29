@@ -1,5 +1,8 @@
 # DualApp MediaStore APIs Compatibility Test
 
+Tuning of Android MediaStore & File IO compatibility issues between HostProfile app and
+WorkProfile app (DualApp/ParallelApp), especially for OEM Android Devices.
+
 ## Enable WorkProfile for DualApp
 
 1. Create Profile
@@ -16,3 +19,12 @@
 1. Read & Write file by MediaStore within DualApp.
 2. File Uri/FilePath Convert within DualApp.
 3. Handle sharing file  within DualApp.
+
+## Known Problems
+
+1. IO works perfectly within Google Pixel of Android 10/11/12. FileProvider is needed when interacting
+between HostProfile app and WorkProfile app.
+2. WorkProfile app can not access files saved by MediaStore itself with OEM devices (Huawei, OPPO confirmed).
+3. MediaStore query return missing within WorkProfile app when receiving sharing files from HostProfile app.
+4. It seems that those OEM WorkProfile app save MediaStore IO data to HostProfile's MediaStore db, who knows.
+
