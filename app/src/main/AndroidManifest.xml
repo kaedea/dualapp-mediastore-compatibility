@@ -13,6 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DualAppMediastoreTest">
         <activity android:name="com.kaedea.mediastore.dualappcompat.MainActivity">
+        </activity>
+        <activity android:name="com.kaedea.mediastore.dualappcompat.SaveImgActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
