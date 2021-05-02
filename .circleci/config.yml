@@ -24,8 +24,7 @@ jobs:
         - run:
             name: "Publish Release on GitHub"
             command: |
-              VERSION="test-ci"
-              echo "sh: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug"
+              VERSION="assembleDebug"
               ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug
 
 workflows:
