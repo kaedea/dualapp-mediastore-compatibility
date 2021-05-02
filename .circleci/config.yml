@@ -1,22 +1,39 @@
 version: 2.1
-
-orbs:
-  android: circleci/android@0.2.1
-
 jobs:
   build:
-    executor: android/android
-
+    docker:
+      - image: circleci/android@0.2.1
     steps:
       - checkout
       - run:
           command: ./gradlew assembleDebug
-      - attach_workspace:
-          at: ./app/build/outputs/apk/debug
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            go get github.com/tcnksm/ghr
-            VERSION="test-ci"
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug/app-debug.apk
 
+  publish-github-release:
+      docker:
+        - image: circleci/golang:1.8
+      steps:
+        - checkout
+        - attach_workspace:
+            at: ./app/build/outputs/apk/debug
+        - run:
+            name: "Publish Release on GitHub"
+            command: |
+              go get github.com/tcnksm/ghr
+              VERSION="test-ci"
+              ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug/app-debug.apk
+
+workflows:
+  version: 2.1
+  build-n-deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+      - publish-github-release:
+          requires:
+            - build
+          filters:
+              branches:
+                only: master
+            
