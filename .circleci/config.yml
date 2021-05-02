@@ -10,6 +10,10 @@ jobs:
       - checkout
       - run:
           command: ./gradlew assembleDebug
+      - persist_to_workspace:
+          root: app/build/outputs/apk/debug
+          paths:
+            - app-debug.apk
 
   publish-github-release:
       docker:
@@ -23,7 +27,7 @@ jobs:
             command: |
               go get github.com/tcnksm/ghr
               VERSION="test-ci"
-              ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug/app-debug.apk
+              ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug
 
 workflows:
   version: 2.1
