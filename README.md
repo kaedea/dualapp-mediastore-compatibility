@@ -1,4 +1,5 @@
 # DualApp MediaStore APIs Compatibility Test
+[![CircleCI](https://circleci.com/gh/kaedea/dulapp-mediastore-compatibility.svg?style=shield&circle-token=0408c3e1410b8176b0e9ff44e6ecd0cb2ed45c7b)](#)
 
 Tuning of Android MediaStore & File IO compatibility issues between HostProfile app and
 WorkProfile app (DualApp/ParallelApp), especially for OEM Android Devices.
