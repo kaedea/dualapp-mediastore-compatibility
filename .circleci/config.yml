@@ -1,8 +1,11 @@
 version: 2.1
+
+orbs:
+  android: circleci/android@0.2.1
+
 jobs:
   build:
-    docker:
-      - image: circleci/android@0.2.1
+    executor: android/android
     steps:
       - checkout
       - run:
@@ -24,7 +27,7 @@ jobs:
 
 workflows:
   version: 2.1
-  build-n-deploy:
+  buildapk-and-deploy:
     jobs:
       - build:
           filters:
