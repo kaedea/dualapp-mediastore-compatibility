@@ -27,6 +27,7 @@ jobs:
             command: |
               go get github.com/tcnksm/ghr
               VERSION="test-ci"
+              echo "sh: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug"
               ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./app/build/outputs/apk/debug
 
 workflows:
