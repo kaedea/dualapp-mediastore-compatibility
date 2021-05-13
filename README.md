@@ -29,3 +29,7 @@ between HostProfile app and WorkProfile app.
 3. MediaStore query return missing within WorkProfile app when receiving sharing files from HostProfile app.
 4. It seems that those OEM WorkProfile app save MediaStore IO data to HostProfile's MediaStore db, who knows.
 
+## Demo Apk
+
+[See releases](https://github.com/kaedea/dulapp-mediastore-compatibility/releases)
+
