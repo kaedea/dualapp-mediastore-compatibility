@@ -1,4 +1,5 @@
 # DualApp MediaStore APIs Compatibility Test
+[![CircleCI](https://circleci.com/gh/kaedea/dulapp-mediastore-compatibility.svg?style=shield&circle-token=0408c3e1410b8176b0e9ff44e6ecd0cb2ed45c7b)](#)
 
 Tuning of Android MediaStore & File IO compatibility issues between HostProfile app and
 WorkProfile app (DualApp/ParallelApp), especially for OEM Android Devices.
@@ -27,4 +28,8 @@ between HostProfile app and WorkProfile app.
 2. WorkProfile app can not access files saved by MediaStore itself with OEM devices (Huawei, OPPO confirmed).
 3. MediaStore query return missing within WorkProfile app when receiving sharing files from HostProfile app.
 4. It seems that those OEM WorkProfile app save MediaStore IO data to HostProfile's MediaStore db, who knows.
+
+## Demo Apk
+
+[See releases](https://github.com/kaedea/dulapp-mediastore-compatibility/releases)
 
