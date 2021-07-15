@@ -34,4 +34,8 @@ public class ProfileActivity extends AppCompatActivity {
         }
         Toast.makeText(view.getContext(), "App is running as HostProfile", Toast.LENGTH_LONG).show();
     }
+
+    public void onCheckUserId(View view) {
+        Toast.makeText(view.getContext(), "UserId: " + android.os.Process.myUserHandle().hashCode(), Toast.LENGTH_LONG).show();
+    }
 }
