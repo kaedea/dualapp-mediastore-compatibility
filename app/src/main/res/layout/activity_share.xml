@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/layout_bottom"
-        android:layout_margin="20dp"
+        android:layout_margin="15dp"
         android:background="#ccc"
         android:gravity="center"
         android:orientation="horizontal" />
@@ -26,13 +26,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_margin="20dp"
+        android:layout_margin="5dp"
         android:orientation="horizontal">
 
         <Button
             android:textSize="10sp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="58dp"
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:onClick="onWriteImg"
@@ -41,7 +41,7 @@
         <Button
             android:textSize="10sp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="58dp"
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:onClick="onFilePath2Uri"
@@ -50,7 +50,7 @@
         <Button
             android:textSize="10sp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="58dp"
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:onClick="onUri2FilePath"
