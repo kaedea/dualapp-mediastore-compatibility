@@ -23,10 +23,10 @@ public class DemoProvider {
         ActivityHolder tab1 = new ActivityHolder();
 
         // default demos
+        tab1.addActivity("ProfileActivity", "Test WorkProfile APIs", ProfileActivity.class);
         tab1.addActivity("SaveImgActivity", "Test MediaStore save & read image", SaveImgActivity.class);
         tab1.addActivity("ConvertActivity", "Test MediaStore uri/file_path convert", ConvertActivity.class);
         tab1.addActivity("ShareImgActivity", "Test simple image sharing", ShareImgActivity.class);
-        tab1.addActivity("ProfileActivity", "Test WorkProfile APIs", ProfileActivity.class);
         demos.put("Default", tab1);
     }
 }
