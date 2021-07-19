@@ -23,11 +23,16 @@ WorkProfile app (DualApp/ParallelApp), especially for OEM Android Devices.
 
 ## Known Problems
 
-1. IO works perfectly within Google Pixel of Android 10/11/12. FileProvider is needed when interacting
+All IO tested above works perfectly within Google Pixel of Android 10/11/12. FileProvider is needed when interacting
 between HostProfile app and WorkProfile app.
-2. WorkProfile app can not access files saved by MediaStore itself with OEM devices (Huawei, OPPO confirmed).
-3. MediaStore query return missing within WorkProfile app when receiving sharing files from HostProfile app.
-4. It seems that those OEM WorkProfile app save MediaStore IO data to HostProfile's MediaStore db, who knows.
+
+OEM Android Devices' DualApp(or MultiApp, mostly with a UserId `999`) works like WorkProfile(mostly with a UserId `10+`).
+But unlike WorkProfile, DualApp MediaStore saves files into path of user `xxx-0` but not `999`. This
+causes some problems:
+
+1. WorkProfile App can not directly access files saved by MediaStore itself in OEM devices (Huawei, OPPO confirmed), when query by file path.
+2. MediaStore query return missing within WorkProfile app when receiving sharing files from HostProfile app.
+3. HostProfile App might get wrong file path, which is actually DualApp's, when query file by MediaStore.
 
 ## Demo Apk
 
