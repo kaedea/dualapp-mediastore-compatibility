@@ -43,7 +43,7 @@ public final class MediaStoreOps {
         }
 
         String mimeType = "image/jpg";
-        String displayName = srcFilePath.substring(srcFilePath.lastIndexOf("/") + 1);
+        String displayName = destFilePath.substring(destFilePath.lastIndexOf("/") + 1);
         String relativePath = null;
 
         if (destFilePath.contains(mediaDir)) {
@@ -182,6 +182,80 @@ public final class MediaStoreOps {
             }
         } catch (Throwable e) {
             Log.e(TAG, "convert pathToUri fail", e);
+        }
+
+        return null;
+    }
+
+    public static Uri queryUriByName(@NonNull Context context, String fileName) {
+        if (TextUtils.isEmpty(fileName)) {
+            return null;
+        }
+
+        Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        try (Cursor cursor = context.getContentResolver().query(
+                contentUri,
+                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH},
+                MediaStore.MediaColumns.DISPLAY_NAME + " like ? ", new String[]{"%" + fileName + "%"},
+                null
+        )) {
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    int id = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID));
+                    return Uri.withAppendedPath(contentUri, String.valueOf(id));
+                }
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, "queryUriByName fail", e);
+        }
+
+        return null;
+    }
+
+    public static Uri queryUriByRelativePath(@NonNull Context context, String filePath) {
+        if (TextUtils.isEmpty(filePath)) {
+            return null;
+        }
+
+        Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String mediaDir = Environment.DIRECTORY_PICTURES;
+
+        if (TextUtils.isEmpty(mediaDir)) {
+            Log.w(TAG, "#saveWithMediaStore unsupported contentUri: " + contentUri);
+            return null;
+        }
+
+        String mimeType = "image/jpg";
+        String displayName = filePath.substring(filePath.lastIndexOf("/") + 1);
+        String relativePath = null;
+
+        if (filePath.contains(mediaDir)) {
+            int idxBgn = filePath.indexOf(mediaDir) + mediaDir.length();
+            int idxEnd = filePath.lastIndexOf(File.separator);
+            if (idxBgn < idxEnd) {
+                relativePath = mediaDir + filePath.substring(idxBgn, idxEnd);
+            }
+        }
+
+        if (TextUtils.isEmpty(relativePath)) {
+            return null;
+        }
+
+        try (Cursor cursor = context.getContentResolver().query(
+                contentUri,
+                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH},
+                MediaStore.MediaColumns.RELATIVE_PATH + " like ? and " + MediaStore.MediaColumns.DISPLAY_NAME + " like ? ", new String[]{"%" + relativePath + "%", "%" + displayName + "%"},
+                null
+        )) {
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    int id = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID));
+                    return Uri.withAppendedPath(contentUri, String.valueOf(id));
+                }
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, "queryUriByName fail", e);
         }
 
         return null;
