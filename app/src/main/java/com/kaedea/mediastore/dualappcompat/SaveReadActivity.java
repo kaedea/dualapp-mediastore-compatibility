@@ -15,6 +15,8 @@ import com.kaedea.mediastore.dualappcompat.utils.MediaStoreOps;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,14 +78,29 @@ public class SaveReadActivity extends AppCompatActivity {
     public void onReadImg(View view) {
         String filePath = getExternalFile().getAbsolutePath();
         println("try query uri of saved file: " + filePath);
-        // String fileName = new File(filePath).getName();
-        // Uri uri = MediaStoreOps.queryUriByName(view.getContext(), fileName);
-        Uri uri = MediaStoreOps.queryUriByRelativePath(view.getContext(), filePath);
+        Uri uri = MediaStoreOps.pathToUri(view.getContext(), filePath);
         if (uri != null) {
             println("uri: " + uri);
+            InputStream is = MediaStoreOps.readWithMediaStore(this, uri);
+            boolean result = false;
+            if (is != null) {
+                result = true;
+            }
+            IOUtils.closeQuietly(is);
+            println("try read file by uri: " + result);
         } else {
             println("try query saved file fail! ");
         }
+
+        InputStream is = null;
+        boolean result = false;
+        try {
+            is = new FileInputStream(new File(filePath));
+            result = true;
+        } catch (FileNotFoundException e) {
+        }
+        IOUtils.closeQuietly(is);
+        println("try read file by path: " + result);
 
         println("-------------------");
     }

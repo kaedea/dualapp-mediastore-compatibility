@@ -16,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -27,6 +28,14 @@ import androidx.annotation.NonNull;
  */
 public final class MediaStoreOps {
     private static final String TAG = "ScopedStorageUtil";
+
+    public static InputStream readWithMediaStore(Context context, Uri uri) {
+        try {
+            return context.getContentResolver().openInputStream(uri);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+    }
 
     public static Uri saveWithMediaStore(@NonNull final Context context, @NonNull final String srcFilePath, @NonNull final String destFilePath) {
         if (!new File(srcFilePath).exists()) {
@@ -165,71 +174,47 @@ public final class MediaStoreOps {
         if (TextUtils.isEmpty(filePath)) {
             return null;
         }
+        // Uri uri = queryUriByData(context, filePath);
+        Uri uri = null;
+        if (uri == null) {
+            uri = queryUriByRelativePath(context, filePath);
+        }
+        return uri;
+    }
 
+    private static Uri queryUriByData(@NonNull Context context, String filePath) {
         Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
         try (Cursor cursor = context.getContentResolver().query(
                 contentUri,
-                new String[]{MediaStore.MediaColumns._ID},
+                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.DATA},
                 MediaStore.MediaColumns.DATA + "=? ", new String[]{filePath},
                 null
         )) {
             if (cursor != null) {
-                if (cursor.moveToFirst()) {
+                if (cursor.moveToLast()) {
                     int id = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID));
+                    String dn = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+                    String rp = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.RELATIVE_PATH));
+                    String data = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
                     return Uri.withAppendedPath(contentUri, String.valueOf(id));
                 }
             }
         } catch (Throwable e) {
             Log.e(TAG, "convert pathToUri fail", e);
         }
-
         return null;
     }
 
-    public static Uri queryUriByName(@NonNull Context context, String fileName) {
-        if (TextUtils.isEmpty(fileName)) {
-            return null;
-        }
-
-        Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        try (Cursor cursor = context.getContentResolver().query(
-                contentUri,
-                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH},
-                MediaStore.MediaColumns.DISPLAY_NAME + " like ? ", new String[]{"%" + fileName + "%"},
-                null
-        )) {
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    int id = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID));
-                    return Uri.withAppendedPath(contentUri, String.valueOf(id));
-                }
-            }
-        } catch (Throwable e) {
-            Log.e(TAG, "queryUriByName fail", e);
-        }
-
-        return null;
-    }
-
-    public static Uri queryUriByRelativePath(@NonNull Context context, String filePath) {
-        if (TextUtils.isEmpty(filePath)) {
-            return null;
-        }
-
+    private static Uri queryUriByRelativePath(@NonNull Context context, String filePath) {
         Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String mediaDir = Environment.DIRECTORY_PICTURES;
-
         if (TextUtils.isEmpty(mediaDir)) {
             Log.w(TAG, "#saveWithMediaStore unsupported contentUri: " + contentUri);
             return null;
         }
-
         String mimeType = "image/jpg";
         String displayName = filePath.substring(filePath.lastIndexOf("/") + 1);
         String relativePath = null;
-
         if (filePath.contains(mediaDir)) {
             int idxBgn = filePath.indexOf(mediaDir) + mediaDir.length();
             int idxEnd = filePath.lastIndexOf(File.separator);
@@ -237,21 +222,40 @@ public final class MediaStoreOps {
                 relativePath = mediaDir + filePath.substring(idxBgn, idxEnd);
             }
         }
-
         if (TextUtils.isEmpty(relativePath)) {
             return null;
         }
 
         try (Cursor cursor = context.getContentResolver().query(
                 contentUri,
-                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH},
+                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.DATA},
                 MediaStore.MediaColumns.RELATIVE_PATH + " like ? and " + MediaStore.MediaColumns.DISPLAY_NAME + " like ? ", new String[]{"%" + relativePath + "%", "%" + displayName + "%"},
                 null
         )) {
             if (cursor != null) {
-                if (cursor.moveToFirst()) {
+                int matchCount = cursor.getCount();
+                int targetId = -1;
+                while (cursor.moveToNext()) {
                     int id = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID));
-                    return Uri.withAppendedPath(contentUri, String.valueOf(id));
+                    String dn = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+                    String rp = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.RELATIVE_PATH));
+                    String data = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
+
+                    // DualApp filter
+                    if (android.os.Process.myUserHandle().hashCode() == 0) {
+                        // Host: Original App
+                        if (data.contains("/0/")) {
+                            targetId = id;
+                        }
+                    } else {
+                        // Profile: WorkProfile App or DualApp
+                        if (!data.contains("/0/")) {
+                            targetId = id;
+                        }
+                    }
+                }
+                if (targetId != -1) {
+                    return Uri.withAppendedPath(contentUri, String.valueOf(targetId));
                 }
             }
         } catch (Throwable e) {
