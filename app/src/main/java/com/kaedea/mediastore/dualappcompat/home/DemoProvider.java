@@ -6,6 +6,7 @@ package com.kaedea.mediastore.dualappcompat.home;
 
 
 import com.kaedea.mediastore.dualappcompat.ConvertActivity;
+import com.kaedea.mediastore.dualappcompat.MediaStoreOpsActivity;
 import com.kaedea.mediastore.dualappcompat.ProfileActivity;
 import com.kaedea.mediastore.dualappcompat.SaveImgActivity;
 import com.kaedea.mediastore.dualappcompat.SaveReadActivity;
@@ -24,7 +25,8 @@ public class DemoProvider {
         ActivityHolder tab1 = new ActivityHolder();
 
         // default demos
-        tab1.addActivity("ProfileActivity", "Test WorkProfile APIs", ProfileActivity.class);
+        tab1.addActivity("App Profile", "Test WorkProfile APIs", ProfileActivity.class);
+        tab1.addActivity("MediaStore Ops", "Test MediaStore APIs", MediaStoreOpsActivity.class);
         tab1.addActivity("SaveReadActivity", "Test MediaStore save & read image", SaveReadActivity.class);
         tab1.addActivity("SaveImgActivity", "Test MediaStore save & read image 2", SaveImgActivity.class);
         tab1.addActivity("ConvertActivity", "Test MediaStore uri/file_path convert", ConvertActivity.class);

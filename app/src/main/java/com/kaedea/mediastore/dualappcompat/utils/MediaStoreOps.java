@@ -54,6 +54,58 @@ public final class MediaStoreOps {
         }
     }
 
+    public static String configureOutputPath(@NonNull final Context context, @NonNull final String destFilePath) {
+        Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String mediaDir = Environment.DIRECTORY_PICTURES;
+
+        if (TextUtils.isEmpty(mediaDir)) {
+            Log.w(TAG, "#saveWithMediaStore unsupported contentUri: " + contentUri);
+            return null;
+        }
+
+        String mimeType = "image/jpg";
+        String displayName = destFilePath.substring(destFilePath.lastIndexOf("/") + 1);
+        String relativePath = null;
+
+        if (destFilePath.contains(mediaDir)) {
+            int idxBgn = destFilePath.indexOf(mediaDir) + mediaDir.length();
+            int idxEnd = destFilePath.lastIndexOf(File.separator);
+            if (idxBgn < idxEnd) {
+                relativePath = mediaDir + destFilePath.substring(idxBgn, idxEnd);
+            }
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
+        if (!TextUtils.isEmpty(relativePath)) {
+            contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
+        }
+
+        ContentResolver resolver = context.getContentResolver();
+        Uri uri = null;
+
+        try {
+            uri = resolver.insert(contentUri, contentValues);
+            if (uri == null) {
+                Log.w(TAG, "#saveWithMediaStore create target media uri fail, path = " + destFilePath);
+                return null;
+            }
+            return uriToPath(context, uri);
+
+        } catch (Throwable e) {
+            Log.e(TAG, "MediaStore save fail", e);
+            return null;
+        } finally {
+            if (uri != null) {
+                try {
+                    resolver.delete(uri, null, null);
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+    }
+
     public static Uri saveWithMediaStore(@NonNull final Context context, @NonNull final String srcFilePath, @NonNull final String destFilePath) {
         if (!new File(srcFilePath).exists()) {
             Log.w(TAG, "#saveWithMediaStore src file not found, path = " + srcFilePath);

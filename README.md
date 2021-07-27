@@ -19,9 +19,10 @@ WorkProfile app (DualApp/ParallelApp), especially for OEM Android Devices.
 
 ## Test Cases
 
-1. Read & Write file by MediaStore within DualApp.
-2. File Uri/FilePath Convert within DualApp.
-3. Handle sharing file  within DualApp.
+1. WorkProfile/DualApp/MutliApp Recognize.
+2. Read & Write file by MediaStore within DualApp.
+3. File Uri/FilePath Convert within DualApp.
+4. Handle sharing file  within DualApp.
 
 ## Known Problems
 
