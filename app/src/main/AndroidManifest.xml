@@ -12,7 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DualAppMediastoreTest">
-        <activity android:name=".home.MainActivity">
+        <activity
+            android:name=".home.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,7 +24,9 @@
         <activity android:name=".ConvertActivity" />
         <activity android:name=".SaveImgActivity" />
         <activity android:name=".SaveReadActivity" />
-        <activity android:name=".ShareImgActivity">
+        <activity
+            android:name=".ShareImgActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -31,7 +35,9 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".ProfileActivity">
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>

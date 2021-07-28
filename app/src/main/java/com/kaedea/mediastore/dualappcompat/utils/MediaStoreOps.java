@@ -37,6 +37,23 @@ public final class MediaStoreOps {
         }
     }
 
+    public static boolean deleteWithMediaStore(Context context, String filePath) {
+        Uri uri = pathToUri(context, filePath);
+        if (uri == null) {
+            return false;
+        }
+        return deleteWithMediaStore(context, uri);
+    }
+
+    public static boolean deleteWithMediaStore(Context context, Uri uri) {
+        try {
+            context.getContentResolver().delete(uri, null, null);
+            return true;
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
     public static Uri saveWithMediaStore(@NonNull final Context context, @NonNull final String srcFilePath, @NonNull final String destFilePath) {
         if (!new File(srcFilePath).exists()) {
             Log.w(TAG, "#saveWithMediaStore src file not found, path = " + srcFilePath);
@@ -82,6 +99,7 @@ public final class MediaStoreOps {
             try (OutputStream os = resolver.openOutputStream(uri)) {
                 try (InputStream is = new FileInputStream(srcFilePath)) {
                     IOUtils.copy(is, os);
+                    // DocumentsContract.renameDocument(resolver, uri, displayName);
                     return uri;
                 }
             }
@@ -174,8 +192,8 @@ public final class MediaStoreOps {
         if (TextUtils.isEmpty(filePath)) {
             return null;
         }
-        // Uri uri = queryUriByData(context, filePath);
-        Uri uri = null;
+        Uri uri = queryUriByData(context, filePath);
+        // Uri uri = null;
         if (uri == null) {
             uri = queryUriByRelativePath(context, filePath);
         }

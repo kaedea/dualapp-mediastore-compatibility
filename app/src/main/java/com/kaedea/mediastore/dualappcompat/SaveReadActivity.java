@@ -59,15 +59,13 @@ public class SaveReadActivity extends AppCompatActivity {
         File externalFile = getExternalFile();
 
         println("write externalFile to: " + externalFile.getAbsolutePath());
-        if (externalFile.exists()) {
-            externalFile.delete();
-        } else {
-            externalFile.getParentFile().mkdirs();
-        }
-
+        println("delete existing: " + MediaStoreOps.deleteWithMediaStore(this, externalFile.getAbsolutePath()));
         Uri uri = MediaStoreOps.saveWithMediaStore(this, internalFile.getAbsolutePath(), externalFile.getAbsolutePath());
         if (uri != null) {
+            String savedPath = MediaStoreOps.uriToPath(this, uri);
             println("uri: " + uri);
+            println("savedPath: " + savedPath);
+            println("same: " + externalFile.equals(new File(savedPath)));
         } else {
             println("saveWithMediaStore fail!");
         }
@@ -124,7 +122,7 @@ public class SaveReadActivity extends AppCompatActivity {
     }
 
     private void println(String msg) {
-        sb.append(msg).append("\n\n");
+        sb.append(msg).append("\n");
         mTextView.setText(sb.toString());
         Log.i("DualAppMediaStoreTest", sb.toString());
     }
