@@ -45,6 +45,17 @@
         <activity
             android:name=".MediaStoreOpsActivity"
             android:exported="true">
+        </activity>
+        <activity
+            android:name=".ProcStatActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SmokeActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>

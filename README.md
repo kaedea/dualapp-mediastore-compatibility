@@ -1,8 +1,10 @@
 # DualApp MediaStore APIs Compatibility Test
-[![CircleCI](https://circleci.com/gh/kaedea/dulapp-mediastore-compatibility.svg?style=shield&circle-token=0408c3e1410b8176b0e9ff44e6ecd0cb2ed45c7b)](#)
+[![CircleCI](https://circleci.com/gh/kaedea/dualapp-mediastore-compatibility.svg?style=shield&circle-token=0408c3e1410b8176b0e9ff44e6ecd0cb2ed45c7b)](#)
 
 Tuning of Android MediaStore & File IO compatibility issues between HostProfile app and
 WorkProfile app (DualApp/ParallelApp), especially for OEM Android Devices.
+
+Also run the smoking tests for Android's **Scoped Storage** Feature.
 
 ## Enable WorkProfile for DualApp
 
@@ -22,7 +24,8 @@ WorkProfile app (DualApp/ParallelApp), especially for OEM Android Devices.
 1. WorkProfile/DualApp/MutliApp Recognize.
 2. Read & Write file by MediaStore within DualApp.
 3. File Uri/FilePath Convert within DualApp.
-4. Handle sharing file  within DualApp.
+4. Handle sharing file within DualApp.
+5. Files manipulations smoking test.
 
 ## Known Problems
 

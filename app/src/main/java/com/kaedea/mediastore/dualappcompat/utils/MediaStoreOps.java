@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 /**
  * @author Kaede
@@ -246,7 +248,7 @@ public final class MediaStoreOps {
         }
         Uri uri = queryUriByData(context, filePath);
         // Uri uri = null;
-        if (uri == null) {
+        if (uri == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             uri = queryUriByRelativePath(context, filePath);
         }
         return uri;
@@ -256,7 +258,7 @@ public final class MediaStoreOps {
         Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         try (Cursor cursor = context.getContentResolver().query(
                 contentUri,
-                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.DATA},
+                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, /*MediaStore.MediaColumns.RELATIVE_PATH,*/ MediaStore.MediaColumns.DATA},
                 MediaStore.MediaColumns.DATA + "=? ", new String[]{filePath},
                 null
         )) {
@@ -264,7 +266,7 @@ public final class MediaStoreOps {
                 if (cursor.moveToLast()) {
                     int id = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID));
                     String dn = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
-                    String rp = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.RELATIVE_PATH));
+                    // String rp = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.RELATIVE_PATH));
                     String data = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA));
                     return Uri.withAppendedPath(contentUri, String.valueOf(id));
                 }
@@ -275,6 +277,7 @@ public final class MediaStoreOps {
         return null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private static Uri queryUriByRelativePath(@NonNull Context context, String filePath) {
         Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String mediaDir = Environment.DIRECTORY_PICTURES;
