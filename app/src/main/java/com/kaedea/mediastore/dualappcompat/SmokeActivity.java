@@ -311,6 +311,22 @@ public class SmokeActivity extends AppCompatActivity {
             } catch (IOException e) {
                 println("🌚: file copy, " + e.getMessage());
             }
+
+            boolean delete = false;
+            try {
+                delete = new File(sdRootFilePath).delete();
+                println("🌝: file delete = " + delete);
+            } catch (Exception e) {
+                println("🌚: file delete, " + e.getMessage());
+            }
+            if (!delete) {
+                try {
+                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(sdRootFilePath));
+                    println("🌝: file write");
+                } catch (IOException e) {
+                    println("🌚: file write, " + e.getMessage());
+                }
+            }
         }
 
         println("\n");
@@ -336,6 +352,22 @@ public class SmokeActivity extends AppCompatActivity {
                 println("🌝: file copy");
             } catch (IOException e) {
                 println("🌚: file copy, " + e.getMessage());
+            }
+
+            boolean delete = false;
+            try {
+                delete = new File(sdUnspecificFilePath).delete();
+                println("🌝: file delete = " + delete);
+            } catch (Exception e) {
+                println("🌚: file delete, " + e.getMessage());
+            }
+            if (!delete) {
+                try {
+                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(sdUnspecificFilePath));
+                    println("🌝: file write");
+                } catch (IOException e) {
+                    println("🌚: file write, " + e.getMessage());
+                }
             }
         }
 
