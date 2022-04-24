@@ -25,4 +25,10 @@
         android:layout_height="wrap_content"
         android:onClick="onCheckUserPath"
         android:text="Check App UserPath" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onCheckUidCapacity"
+        android:text="Check UID Capacity" />
 </LinearLayout>

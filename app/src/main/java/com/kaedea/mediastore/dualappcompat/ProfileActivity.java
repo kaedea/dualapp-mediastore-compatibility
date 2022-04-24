@@ -1,18 +1,31 @@
 package com.kaedea.mediastore.dualappcompat;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.IInterface;
+import android.os.Parcel;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.view.View;
 import android.widget.Toast;
 
+import com.kaedea.mediastore.dualappcompat.utils.DoubleReflect;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -59,5 +72,63 @@ public class ProfileActivity extends AppCompatActivity {
             userPath = dataPath.substring(0, dataPath.indexOf(packageName));
         }
         Toast.makeText(view.getContext(), "UserPath: " + userPath, Toast.LENGTH_LONG).show();
+    }
+
+    public void onCheckUidCapacity(View view) {
+        try {
+            IBinder binder = getCurrentBinder(Context.ACTIVITY_SERVICE);
+            if (binder != null) {
+                Object manager = createServiceManager("android.app.IActivityManager", binder);
+                if (manager != null) {
+                    Class clazz = Class.forName("android.app.IActivityManager");
+                    Method method = DoubleReflect.findMethod(clazz, "isUidActive", new Class[]{int.class, String.class});
+                    if (method != null) {
+                        try {
+                            Object ret = method.invoke(manager, view.getContext().getApplicationInfo().uid, view.getContext().getPackageName());
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                            e.printStackTrace();
+                            Toast.makeText(view.getContext(), "Error: " + e.getCause().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    method = DoubleReflect.findMethod(clazz, "getUidProcessState", new Class[]{int.class, String.class});
+                    if (method != null) {
+                        try {
+                            Object ret = method.invoke(manager, view.getContext().getApplicationInfo().uid, view.getContext().getPackageName());
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                            e.printStackTrace();
+                            Toast.makeText(view.getContext(), "Error: " + e.getCause().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    method = DoubleReflect.findMethod(clazz, "getUidProcessCapabilities", new Class[]{int.class, String.class});
+                    if (method != null) {
+                        try {
+                            Object ret = method.invoke(manager, view.getContext().getApplicationInfo().uid, view.getContext().getPackageName());
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                            e.printStackTrace();
+                            Toast.makeText(view.getContext(), "Error: " + e.getCause().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static IBinder getCurrentBinder(String serviceName) throws Exception {
+        Class<?> serviceManagerCls = Class.forName("android.os.ServiceManager");
+        Method getService = serviceManagerCls.getDeclaredMethod("getService", String.class);
+        return  (IBinder) getService.invoke(null, serviceName);
+    }
+
+    private static Object createServiceManager(String serviceClassName, IBinder originBinder) throws Exception  {
+        Class<?> serviceManagerCls = Class.forName(serviceClassName);
+        Class<?> serviceManagerStubCls = Class.forName(serviceClassName + "$Stub");
+        ClassLoader classLoader = serviceManagerStubCls.getClassLoader();
+        if (classLoader == null) {
+            throw new IllegalStateException("get service manager ClassLoader fail!");
+        }
+        Method asInterfaceMethod = serviceManagerStubCls.getDeclaredMethod("asInterface", IBinder.class);
+        return asInterfaceMethod.invoke(null, originBinder);
     }
 }
