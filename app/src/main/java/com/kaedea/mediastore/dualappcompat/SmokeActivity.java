@@ -356,30 +356,73 @@ public class SmokeActivity extends AppCompatActivity {
             }
         }
 
+        println("\n");
+        println("C. Test Uri: from sd root file");
+        {
+            Uri mediaUri = MediaStoreOps.pathToUri(getApplicationContext(), new File(Environment.getExternalStorageDirectory() + "/test_img.jpg").getAbsolutePath());
+            if (mediaUri == null) {
+                println("🌚: sd root uri is missing");
+            } else {
+                testUriOpes(mediaUri.toString());
+            }
+        }
+
+        println("\n");
+        println("D. Test Uri: from sd unspecific file");
+        {
+            Uri mediaUri = MediaStoreOps.pathToUri(getApplicationContext(), new File(Environment.getExternalStorageDirectory() + "/MyApp/test_img.jpg").getAbsolutePath());
+            if (mediaUri == null) {
+                println("🌚: sd unspecific uri is missing");
+            } else {
+                testUriOpes(mediaUri.toString());
+            }
+        }
+
         println("----------\n");
     }
 
     private void testFileOps(String path) {
         println(path);
+
+        // test file exists
         if (new File(path).exists()) {
             println("🌝: file exists");
         } else {
             println("🌚: file exists");
         }
 
-        try {
-            new FileInputStream(path);
-            println("🌝: file open");
-        } catch (FileNotFoundException e) {
+        // test read file
+        try (InputStream inputStream = new FileInputStream(path)) {
+            println("🌝: file open: size=" + inputStream.available());
+
+            // test write file
+            String tempPath = path + "_temp";
+            try (FileOutputStream outputStream = new FileOutputStream(tempPath)) {
+                println("🌝: file write");
+
+                // test copy file
+                try {
+                    IOUtils.copy(inputStream, outputStream);
+                    println("🌝: file copy");
+
+                    // test delete file
+                    try {
+                        boolean delete = new File(tempPath).delete();
+                        println("🌝: file delete = " + delete);
+                    } catch (Exception e) {
+                        println("🌚: file delete, " + e.getMessage());
+                    }
+                } catch (IOException e) {
+                    println("🌚: file copy, " + e.getMessage());
+                }
+            } catch (IOException e) {
+                println("🌚: file write, " + e.getMessage());
+            }
+        } catch (IOException e) {
             println("🌚: file open, " + e.getMessage());
         }
-        try {
-            IOUtils.copy(new FileInputStream(path), new FileOutputStream(path + "_temp"));
-            println("🌝: file copy");
-        } catch (IOException e) {
-            println("🌚: file copy, " + e.getMessage());
-        }
 
+        // test path-uri convert
         Uri uri = MediaStoreOps.pathToUri(this, path);
         if (uri != null) {
             println("🌝: path2Uri = " + uri);
@@ -392,30 +435,44 @@ public class SmokeActivity extends AppCompatActivity {
         } else {
             println("🌚: path2Uri = NULL");
         }
-
-        boolean delete = false;
-        try {
-            delete = new File(path).delete();
-            println("🌝: file delete = " + delete);
-        } catch (Exception e) {
-            println("🌚: file delete, " + e.getMessage());
-        }
-        if (!delete) {
-            try {
-                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(path));
-                println("🌝: file write");
-            } catch (IOException e) {
-                println("🌚: file write, " + e.getMessage());
-            }
-        }
     }
 
     private void testUriOpes(String mediaUri) {
         println(mediaUri);
         Uri uri = Uri.parse(mediaUri);
+        // test read media
         try (InputStream inputStream = MediaStoreOps.readWithMediaStore(getApplicationContext(), uri)) {
             if (inputStream != null) {
                 println("🌝: uri open, available=" + inputStream.available());
+
+                Uri tempUri = MediaStoreOps.pathToUri(getApplicationContext(), new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img_uri_output.jpg").getAbsolutePath());
+                if (tempUri != null) {
+                    // test write media
+                    try (OutputStream outputStream = MediaStoreOps.writeWithMediaStore(getApplicationContext(), uri)) {
+                        if (outputStream != null) {
+                            println("🌝: uri write");
+
+                            // test copy media
+                            try {
+                                int size = IOUtils.copy(inputStream, outputStream);
+                                println("🌝: uri copy, size=" + size);
+
+                                // test delete copied media
+                                if (MediaStoreOps.deleteWithMediaStore(getApplicationContext(), tempUri)) {
+                                    println("🌝: uri delete");
+                                } else {
+                                    println("🌚: uri delete");
+                                }
+                            } catch (IOException e) {
+                                println("🌚: uri copy, " + e.getMessage());
+                            }
+                        } else {
+                            println("🌚: uri write, null outputStream");
+                        }
+                    } catch (IOException e) {
+                        println("🌚: uri outputStream, " + e.getMessage());
+                    }
+                }
             } else {
                 println("🌚: uri open, null inputStream");
             }
@@ -423,16 +480,7 @@ public class SmokeActivity extends AppCompatActivity {
             println("🌚: uri open, " + e.getMessage());
         }
 
-        try (OutputStream outputStream = MediaStoreOps.writeWithMediaStore(getApplicationContext(), uri)) {
-            if (outputStream != null) {
-                println("🌝: uri write");
-            } else {
-                println("🌚: uri write, null outputStream");
-            }
-        } catch (IOException e) {
-            println("🌚: uri outputStream, " + e.getMessage());
-        }
-
+        // test path-uri convert
         String uriToPath = MediaStoreOps.uriToPath(this, uri);
         if (!TextUtils.isEmpty(uriToPath)) {
             println("🌝: uri2Path = " + uriToPath);
@@ -444,12 +492,6 @@ public class SmokeActivity extends AppCompatActivity {
             }
         } else {
             println("🌚: uri2Path = NULL");
-        }
-
-        if (MediaStoreOps.deleteWithMediaStore(getApplicationContext(), uri)) {
-            println("🌝: uri delete");
-        } else {
-            println("🌚: uri delete");
         }
     }
 }
