@@ -3,14 +3,15 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkPreview "Tiramisu"
+    // compileSdkVersion 31
     buildToolsVersion "30.0.3"
-
     defaultConfig {
         applicationId properties?.applicationId ?: "com.kaedea.mediastore.dualappcompat.test"
 
         minSdkVersion 21
-        targetSdkVersion 31
+        // targetSdkPreview "Tiramisu"
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 

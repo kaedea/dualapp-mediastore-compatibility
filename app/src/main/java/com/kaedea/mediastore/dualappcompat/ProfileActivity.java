@@ -2,11 +2,16 @@ package com.kaedea.mediastore.dualappcompat;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.IInterface;
@@ -72,6 +77,21 @@ public class ProfileActivity extends AppCompatActivity {
             userPath = dataPath.substring(0, dataPath.indexOf(packageName));
         }
         Toast.makeText(view.getContext(), "UserPath: " + userPath, Toast.LENGTH_LONG).show();
+    }
+
+    public void onCheckNotificationPermission(View view) {
+        if (android.os.Build.VERSION.SDK_INT >= 33 || Build.VERSION.PREVIEW_SDK_INT >= 33 || Build.VERSION.CODENAME.equals("Tiramisu")) {
+            boolean hasPermission = (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED);
+            if (!hasPermission) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 112
+                );
+            }
+            Toast.makeText(view.getContext(), "hasPermission: " + hasPermission, Toast.LENGTH_LONG).show();
+        }
+
+
     }
 
     public void onCheckUidCapacity(View view) {
