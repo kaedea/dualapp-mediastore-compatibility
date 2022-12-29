@@ -36,6 +36,7 @@ public class SmokeActivity extends AppCompatActivity {
     TextView mTextView;
     String publicMediaFilePath;
     String publicMediaFilePathHide;
+    String sdAppSpecificPath;
     String sdRootFilePath;
     String sdUnspecificFilePath;
     String otherAppPrivateFilePath;
@@ -108,6 +109,19 @@ public class SmokeActivity extends AppCompatActivity {
             }
         }
 
+        file = new File(getApplicationContext().getExternalCacheDir(), "test_img.jpg");
+        if (file.exists()) {
+            sdAppSpecificPath = file.getAbsolutePath();
+        } else {
+            try {
+                file.getParentFile().mkdirs();
+                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+                sdAppSpecificPath = file.getAbsolutePath();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         file = new File(Environment.getExternalStorageDirectory() + "/test_img.jpg");
         if (file.exists()) {
             sdRootFilePath = file.getAbsolutePath();
@@ -172,6 +186,7 @@ public class SmokeActivity extends AppCompatActivity {
         println("\n");
         println((!TextUtils.isEmpty(publicMediaFilePath) ? "🌝" : "🌚") + "public_media_file: " + (TextUtils.isEmpty(publicMediaFilePath) ? "NULL" : publicMediaFilePath));
         println((!TextUtils.isEmpty(publicMediaFilePathHide) ? "🌝" : "🌚") + "public_media_file(hide): " + (TextUtils.isEmpty(publicMediaFilePathHide) ? "NULL" : publicMediaFilePathHide));
+        println((!TextUtils.isEmpty(sdAppSpecificPath) ? "🌝" : "🌚") + "sd_app_specific_file: " + (TextUtils.isEmpty(sdAppSpecificPath) ? "NULL" : sdAppSpecificPath));
         println((!TextUtils.isEmpty(sdRootFilePath) ? "🌝" : "🌚") + "sd_root_file: " + (TextUtils.isEmpty(sdRootFilePath) ? "NULL" : sdRootFilePath));
         println((!TextUtils.isEmpty(sdUnspecificFilePath) ? "🌝" : "🌚") + "sd_unspecific_file: " + (TextUtils.isEmpty(sdUnspecificFilePath) ? "NULL" : sdUnspecificFilePath));
         println((!TextUtils.isEmpty(otherAppPrivateFilePath) ? "🌝" : "🌚") + "3rd_app_file_path: " + (TextUtils.isEmpty(otherAppPrivateFilePath) ? "NULL" : otherAppPrivateFilePath));
@@ -288,7 +303,52 @@ public class SmokeActivity extends AppCompatActivity {
         }
 
         println("\n");
-        println("3. Test File: sd root path");
+        println("3. Test File: app-specific path");
+        {
+            String path = sdAppSpecificPath;
+            if (TextUtils.isEmpty(path)) {
+                println("🌚: sdcard app-specific path missing");
+            } else {
+                println(path);
+                if (new File(path).exists()) {
+                    println("🌝: file exists");
+                } else {
+                    println("🌚: file exists");
+                }
+
+                try {
+                    new FileInputStream(new File(path));
+                    println("🌝: file open");
+                } catch (FileNotFoundException e) {
+                    println("🌚: file open, " + e.getMessage());
+                }
+                try {
+                    IOUtils.copy(new FileInputStream(path), new FileOutputStream(path + "_temp"));
+                    println("🌝: file copy");
+                } catch (IOException e) {
+                    println("🌚: file copy, " + e.getMessage());
+                }
+
+                boolean delete = false;
+                try {
+                    delete = new File(path).delete();
+                    println("🌝: file delete = " + delete);
+                } catch (Exception e) {
+                    println("🌚: file delete, " + e.getMessage());
+                }
+                if (!delete) {
+                    try {
+                        IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(path));
+                        println("🌝: file write");
+                    } catch (IOException e) {
+                        println("🌚: file write, " + e.getMessage());
+                    }
+                }
+            }
+        }
+
+        println("\n");
+        println("4. Test File: sd root path");
         if (TextUtils.isEmpty(sdRootFilePath)) {
             println("🌚: sdcard root path missing");
         } else {
@@ -330,7 +390,7 @@ public class SmokeActivity extends AppCompatActivity {
         }
 
         println("\n");
-        println("4. Test File: sd unspecific path");
+        println("5. Test File: sd unspecific path");
         if (TextUtils.isEmpty(sdUnspecificFilePath)) {
             println("🌚: sdcard root path missing");
         } else {
@@ -372,7 +432,7 @@ public class SmokeActivity extends AppCompatActivity {
         }
 
         println("\n");
-        println("5. Test File: 3rd app private path");
+        println("6. Test File: 3rd app private path");
         if (TextUtils.isEmpty(otherAppPrivateFilePath)) {
             println("🌚: 3rd app private path missing, please copy it into CLIPBOARD!");
         } else {
