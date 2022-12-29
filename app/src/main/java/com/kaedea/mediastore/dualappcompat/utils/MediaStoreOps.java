@@ -38,6 +38,13 @@ public final class MediaStoreOps {
             return null;
         }
     }
+    public static OutputStream writeWithMediaStore(Context context, Uri uri) {
+        try {
+            return context.getContentResolver().openOutputStream(uri);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+    }
 
     public static boolean deleteWithMediaStore(Context context, String filePath) {
         Uri uri = pathToUri(context, filePath);

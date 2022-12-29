@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,12 +35,16 @@ public class SmokeActivity extends AppCompatActivity {
 
     StringBuilder sb = new StringBuilder();
     TextView mTextView;
+
     String publicMediaFilePath;
     String publicMediaFilePathHide;
     String sdAppSpecificPath;
     String sdRootFilePath;
     String sdUnspecificFilePath;
     String otherAppPrivateFilePath;
+
+    String publicMediaUri;
+    String publicMediaUriHide;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,79 +84,115 @@ public class SmokeActivity extends AppCompatActivity {
     }
 
     private void prepareFilePath() {
-        File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/test_img.jpg");
-        if (file.exists()) {
-            publicMediaFilePath = file.getAbsolutePath();
-        } else {
-            try {
-                file.getParentFile().mkdirs();
-                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+        // File
+        {
+            File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/test_img.jpg");
+            if (file.exists()) {
                 publicMediaFilePath = file.getAbsolutePath();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        file = new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img.jpg");
-        if (file.exists()) {
-            publicMediaFilePathHide = file.getAbsolutePath();
-        } else {
-            try {
-                file.getParentFile().mkdirs();
-                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
-                File nomedia = new File(file.getParentFile(), ".nomedia");
-                if (!nomedia.exists()) {
-                    nomedia.createNewFile();
+            } else {
+                try {
+                    file.getParentFile().mkdirs();
+                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+                    publicMediaFilePath = file.getAbsolutePath();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+            }
+
+            file = new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img.jpg");
+            if (file.exists()) {
                 publicMediaFilePathHide = file.getAbsolutePath();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                try {
+                    file.getParentFile().mkdirs();
+                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+                    File nomedia = new File(file.getParentFile(), ".nomedia");
+                    if (!nomedia.exists()) {
+                        nomedia.createNewFile();
+                    }
+                    publicMediaFilePathHide = file.getAbsolutePath();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
-        file = new File(getApplicationContext().getExternalCacheDir(), "test_img.jpg");
-        if (file.exists()) {
-            sdAppSpecificPath = file.getAbsolutePath();
-        } else {
-            try {
-                file.getParentFile().mkdirs();
-                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+            file = new File(getApplicationContext().getExternalCacheDir(), "test_img.jpg");
+            if (file.exists()) {
                 sdAppSpecificPath = file.getAbsolutePath();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                try {
+                    file.getParentFile().mkdirs();
+                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+                    sdAppSpecificPath = file.getAbsolutePath();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
-        file = new File(Environment.getExternalStorageDirectory() + "/test_img.jpg");
-        if (file.exists()) {
-            sdRootFilePath = file.getAbsolutePath();
-        } else {
-            try {
-                file.getParentFile().mkdirs();
-                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+            file = new File(Environment.getExternalStorageDirectory() + "/test_img.jpg");
+            if (file.exists()) {
                 sdRootFilePath = file.getAbsolutePath();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                try {
+                    file.getParentFile().mkdirs();
+                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+                    sdRootFilePath = file.getAbsolutePath();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
-        file = new File(Environment.getExternalStorageDirectory() + "/MyApp/test_img.jpg");
-        if (file.exists()) {
-            sdUnspecificFilePath = file.getAbsolutePath();
-        } else {
-            try {
-                file.getParentFile().mkdirs();
-                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+            file = new File(Environment.getExternalStorageDirectory() + "/MyApp/test_img.jpg");
+            if (file.exists()) {
                 sdUnspecificFilePath = file.getAbsolutePath();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                try {
+                    file.getParentFile().mkdirs();
+                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+                    sdUnspecificFilePath = file.getAbsolutePath();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            String text = ClipBoardUtil.paste(this);
+            if (!TextUtils.isEmpty(text)) {
+                if (text.startsWith("/")) {
+                    otherAppPrivateFilePath = text;
+                }
             }
         }
 
-        String text = ClipBoardUtil.paste(this);
-        if (!TextUtils.isEmpty(text)) {
-            if (text.startsWith("/")) {
-                otherAppPrivateFilePath = text;
+        // Uri
+        {
+            {
+                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/test_img_uri.jpg");
+                Uri uri = MediaStoreOps.pathToUri(getApplicationContext(), file.getAbsolutePath());
+                if (uri == null) {
+                    uri = MediaStoreOps.saveWithMediaStore(getApplicationContext(), getInternalFile().getAbsolutePath(), file.getAbsolutePath());
+                }
+                if (uri != null) {
+                    publicMediaUri = uri.toString();
+                }
+            }
+            {
+                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img_uri.jpg");
+                Uri uri = MediaStoreOps.pathToUri(getApplicationContext(), file.getAbsolutePath());
+                if (uri == null) {
+                    try {
+                        file.getParentFile().mkdirs();
+                        File nomedia = new File(file.getParentFile(), ".nomedia");
+                        if (!nomedia.exists()) {
+                            nomedia.createNewFile();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    uri = MediaStoreOps.saveWithMediaStore(getApplicationContext(), getInternalFile().getAbsolutePath(), file.getAbsolutePath());
+                }
+                if (uri != null) {
+                    publicMediaUriHide = uri.toString();
+                }
             }
         }
     }
@@ -190,6 +231,9 @@ public class SmokeActivity extends AppCompatActivity {
         println((!TextUtils.isEmpty(sdRootFilePath) ? "🌝" : "🌚") + "sd_root_file: " + (TextUtils.isEmpty(sdRootFilePath) ? "NULL" : sdRootFilePath));
         println((!TextUtils.isEmpty(sdUnspecificFilePath) ? "🌝" : "🌚") + "sd_unspecific_file: " + (TextUtils.isEmpty(sdUnspecificFilePath) ? "NULL" : sdUnspecificFilePath));
         println((!TextUtils.isEmpty(otherAppPrivateFilePath) ? "🌝" : "🌚") + "3rd_app_file_path: " + (TextUtils.isEmpty(otherAppPrivateFilePath) ? "NULL" : otherAppPrivateFilePath));
+        println("\n");
+        println((!TextUtils.isEmpty(publicMediaUri) ? "🌝" : "🌚") + "public_media_uri: " + (TextUtils.isEmpty(publicMediaUri) ? "NULL" : publicMediaUri));
+        println((!TextUtils.isEmpty(publicMediaUriHide) ? "🌝" : "🌚") + "public_media_uri(hide): " + (TextUtils.isEmpty(publicMediaUriHide) ? "NULL" : publicMediaUriHide));
         println("----------\n");
     }
 
@@ -226,79 +270,23 @@ public class SmokeActivity extends AppCompatActivity {
 
     private void smoking() {
         println("1. Test File: public medias");
-        if (TextUtils.isEmpty(publicMediaFilePath)) {
-            println("🌚: public media path missing");
-        } else {
-            println(publicMediaFilePath);
-            if (new File(publicMediaFilePath).exists()) {
-                println("🌝: file exists");
+        {
+            String path = this.publicMediaFilePath;
+            if (TextUtils.isEmpty(path)) {
+                println("🌚: public media path missing");
             } else {
-                println("🌚: file exists");
-            }
-
-            try {
-                new FileInputStream(new File(publicMediaFilePath));
-                println("🌝: file open");
-            } catch (FileNotFoundException e) {
-                println("🌚: file open, " + e.getMessage());
-            }
-            try {
-                IOUtils.copy(new FileInputStream(publicMediaFilePath), new FileOutputStream(publicMediaFilePath + "_temp"));
-                println("🌝: file copy");
-            } catch (IOException e) {
-                println("🌚: file copy, " + e.getMessage());
-            }
-
-            Uri uri = MediaStoreOps.pathToUri(this, publicMediaFilePath);
-            if (uri != null) {
-                println("🌝: path2Uri = " + uri);
-                String path = MediaStoreOps.uriToPath(this, uri);
-                if (!TextUtils.isEmpty(path)) {
-                    println("🌝: uri2Path = " + path);
-                } else {
-                    println("🌚: uri2Path = NULL");
-                }
-            } else {
-                println("🌚: path2Uri = NULL");
+                testFileOps(path);
             }
         }
 
         println("\n");
         println("2. Test File: public medias (hide)");
-        if (TextUtils.isEmpty(publicMediaFilePathHide)) {
-            println("🌚: public media path (hide) missing");
-        } else {
-            println(publicMediaFilePathHide);
-            if (new File(publicMediaFilePathHide).exists()) {
-                println("🌝: file exists");
+        {
+            String path = publicMediaFilePathHide;
+            if (TextUtils.isEmpty(path)) {
+                println("🌚: public media path (hide) missing");
             } else {
-                println("🌚: file exists");
-            }
-
-            try {
-                new FileInputStream(new File(publicMediaFilePathHide));
-                println("🌝: file open");
-            } catch (FileNotFoundException e) {
-                println("🌚: file open, " + e.getMessage());
-            }
-            try {
-                IOUtils.copy(new FileInputStream(publicMediaFilePathHide), new FileOutputStream(publicMediaFilePathHide + "_temp"));
-                println("🌝: file copy");
-            } catch (IOException e) {
-                println("🌚: file copy, " + e.getMessage());
-            }
-
-            Uri uri = MediaStoreOps.pathToUri(this, publicMediaFilePathHide);
-            if (uri != null) {
-                println("🌝: path2Uri = " + uri);
-                String path = MediaStoreOps.uriToPath(this, uri);
-                if (!TextUtils.isEmpty(path)) {
-                    println("🌝: uri2Path = " + path);
-                } else {
-                    println("🌚: uri2Path = NULL");
-                }
-            } else {
-                println("🌚: path2Uri = NULL");
+                testFileOps(path);
             }
         }
 
@@ -309,154 +297,159 @@ public class SmokeActivity extends AppCompatActivity {
             if (TextUtils.isEmpty(path)) {
                 println("🌚: sdcard app-specific path missing");
             } else {
-                println(path);
-                if (new File(path).exists()) {
-                    println("🌝: file exists");
-                } else {
-                    println("🌚: file exists");
-                }
-
-                try {
-                    new FileInputStream(new File(path));
-                    println("🌝: file open");
-                } catch (FileNotFoundException e) {
-                    println("🌚: file open, " + e.getMessage());
-                }
-                try {
-                    IOUtils.copy(new FileInputStream(path), new FileOutputStream(path + "_temp"));
-                    println("🌝: file copy");
-                } catch (IOException e) {
-                    println("🌚: file copy, " + e.getMessage());
-                }
-
-                boolean delete = false;
-                try {
-                    delete = new File(path).delete();
-                    println("🌝: file delete = " + delete);
-                } catch (Exception e) {
-                    println("🌚: file delete, " + e.getMessage());
-                }
-                if (!delete) {
-                    try {
-                        IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(path));
-                        println("🌝: file write");
-                    } catch (IOException e) {
-                        println("🌚: file write, " + e.getMessage());
-                    }
-                }
+                testFileOps(path);
             }
         }
 
         println("\n");
         println("4. Test File: sd root path");
-        if (TextUtils.isEmpty(sdRootFilePath)) {
-            println("🌚: sdcard root path missing");
-        } else {
-            println(sdRootFilePath);
-            if (new File(sdRootFilePath).exists()) {
-                println("🌝: file exists");
+        {
+            String path = sdRootFilePath;
+            if (TextUtils.isEmpty(path)) {
+                println("🌚: sdcard root path missing");
             } else {
-                println("🌚: file exists");
-            }
-
-            try {
-                new FileInputStream(new File(sdRootFilePath));
-                println("🌝: file open");
-            } catch (FileNotFoundException e) {
-                println("🌚: file open, " + e.getMessage());
-            }
-            try {
-                IOUtils.copy(new FileInputStream(sdRootFilePath), new FileOutputStream(sdRootFilePath + "_temp"));
-                println("🌝: file copy");
-            } catch (IOException e) {
-                println("🌚: file copy, " + e.getMessage());
-            }
-
-            boolean delete = false;
-            try {
-                delete = new File(sdRootFilePath).delete();
-                println("🌝: file delete = " + delete);
-            } catch (Exception e) {
-                println("🌚: file delete, " + e.getMessage());
-            }
-            if (!delete) {
-                try {
-                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(sdRootFilePath));
-                    println("🌝: file write");
-                } catch (IOException e) {
-                    println("🌚: file write, " + e.getMessage());
-                }
+                testFileOps(path);
             }
         }
 
         println("\n");
         println("5. Test File: sd unspecific path");
-        if (TextUtils.isEmpty(sdUnspecificFilePath)) {
-            println("🌚: sdcard root path missing");
-        } else {
-            println(sdUnspecificFilePath);
-            if (new File(sdUnspecificFilePath).exists()) {
-                println("🌝: file exists");
+        {
+            String path = sdUnspecificFilePath;
+            if (TextUtils.isEmpty(path)) {
+                println("🌚: sdcard root path missing");
             } else {
-                println("🌚: file exists");
-            }
-
-            try {
-                new FileInputStream(new File(sdUnspecificFilePath));
-                println("🌝: file open");
-            } catch (FileNotFoundException e) {
-                println("🌚: file open, " + e.getMessage());
-            }
-            try {
-                IOUtils.copy(new FileInputStream(sdUnspecificFilePath), new FileOutputStream(sdUnspecificFilePath + "_temp"));
-                println("🌝: file copy");
-            } catch (IOException e) {
-                println("🌚: file copy, " + e.getMessage());
-            }
-
-            boolean delete = false;
-            try {
-                delete = new File(sdUnspecificFilePath).delete();
-                println("🌝: file delete = " + delete);
-            } catch (Exception e) {
-                println("🌚: file delete, " + e.getMessage());
-            }
-            if (!delete) {
-                try {
-                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(sdUnspecificFilePath));
-                    println("🌝: file write");
-                } catch (IOException e) {
-                    println("🌚: file write, " + e.getMessage());
-                }
+                testFileOps(path);
             }
         }
 
         println("\n");
         println("6. Test File: 3rd app private path");
-        if (TextUtils.isEmpty(otherAppPrivateFilePath)) {
-            println("🌚: 3rd app private path missing, please copy it into CLIPBOARD!");
-        } else {
-            println(otherAppPrivateFilePath);
-            if (new File(otherAppPrivateFilePath).exists()) {
-                println("🌝: file exists");
+        {
+            String path = otherAppPrivateFilePath;
+            if (TextUtils.isEmpty(path)) {
+                println("🌚: 3rd app private path missing, please copy it into CLIPBOARD!");
             } else {
-                println("🌚: file exists");
+                testFileOps(path);
             }
+        }
 
-            try {
-                new FileInputStream(new File(otherAppPrivateFilePath));
-                println("🌝: file open");
-            } catch (FileNotFoundException e) {
-                println("🌚: file open, " + e.getMessage());
+        println("\n");
+        println("A. Test Uri: public media uri");
+        {
+            String mediaUri = publicMediaUri;
+            if (TextUtils.isEmpty(mediaUri)) {
+                println("🌚: public media uri is missing");
+            } else {
+                testUriOpes(mediaUri);
             }
-            try {
-                IOUtils.copy(new FileInputStream(otherAppPrivateFilePath), new FileOutputStream(otherAppPrivateFilePath + "_temp"));
-                println("🌝: file copy");
-            } catch (IOException e) {
-                println("🌚: file copy, " + e.getMessage());
+        }
+
+        println("\n");
+        println("B. Test Uri: public media uri(hide)");
+        {
+            String mediaUri = publicMediaUriHide;
+            if (TextUtils.isEmpty(mediaUri)) {
+                println("🌚: public media uri(hide) is missing");
+            } else {
+                testUriOpes(mediaUri);
             }
         }
 
         println("----------\n");
+    }
+
+    private void testFileOps(String path) {
+        println(path);
+        if (new File(path).exists()) {
+            println("🌝: file exists");
+        } else {
+            println("🌚: file exists");
+        }
+
+        try {
+            new FileInputStream(path);
+            println("🌝: file open");
+        } catch (FileNotFoundException e) {
+            println("🌚: file open, " + e.getMessage());
+        }
+        try {
+            IOUtils.copy(new FileInputStream(path), new FileOutputStream(path + "_temp"));
+            println("🌝: file copy");
+        } catch (IOException e) {
+            println("🌚: file copy, " + e.getMessage());
+        }
+
+        Uri uri = MediaStoreOps.pathToUri(this, path);
+        if (uri != null) {
+            println("🌝: path2Uri = " + uri);
+            String uriToPath = MediaStoreOps.uriToPath(this, uri);
+            if (!TextUtils.isEmpty(uriToPath)) {
+                println("🌝: uri2Path = " + uriToPath);
+            } else {
+                println("🌚: uri2Path = NULL");
+            }
+        } else {
+            println("🌚: path2Uri = NULL");
+        }
+
+        boolean delete = false;
+        try {
+            delete = new File(path).delete();
+            println("🌝: file delete = " + delete);
+        } catch (Exception e) {
+            println("🌚: file delete, " + e.getMessage());
+        }
+        if (!delete) {
+            try {
+                IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(path));
+                println("🌝: file write");
+            } catch (IOException e) {
+                println("🌚: file write, " + e.getMessage());
+            }
+        }
+    }
+
+    private void testUriOpes(String mediaUri) {
+        println(mediaUri);
+        Uri uri = Uri.parse(mediaUri);
+        try (InputStream inputStream = MediaStoreOps.readWithMediaStore(getApplicationContext(), uri)) {
+            if (inputStream != null) {
+                println("🌝: uri open, available=" + inputStream.available());
+            } else {
+                println("🌚: uri open, null inputStream");
+            }
+        } catch (IOException e) {
+            println("🌚: uri open, " + e.getMessage());
+        }
+
+        try (OutputStream outputStream = MediaStoreOps.writeWithMediaStore(getApplicationContext(), uri)) {
+            if (outputStream != null) {
+                println("🌝: uri write");
+            } else {
+                println("🌚: uri write, null outputStream");
+            }
+        } catch (IOException e) {
+            println("🌚: uri outputStream, " + e.getMessage());
+        }
+
+        String uriToPath = MediaStoreOps.uriToPath(this, uri);
+        if (!TextUtils.isEmpty(uriToPath)) {
+            println("🌝: uri2Path = " + uriToPath);
+            Uri pathToUri = MediaStoreOps.pathToUri(this, uriToPath);
+            if (pathToUri != null) {
+                println("🌝: path2Uri = " + pathToUri);
+            } else {
+                println("🌚: path2Uri = NULL");
+            }
+        } else {
+            println("🌚: uri2Path = NULL");
+        }
+
+        if (MediaStoreOps.deleteWithMediaStore(getApplicationContext(), uri)) {
+            println("🌝: uri delete");
+        } else {
+            println("🌚: uri delete");
+        }
     }
 }

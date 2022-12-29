@@ -29,7 +29,7 @@ public class DemoProvider {
         // default demos
         tab1.addActivity("App Profile", "Test WorkProfile APIs", ProfileActivity.class);
         tab1.addActivity("MediaStore Ops", "Test MediaStore APIs", MediaStoreOpsActivity.class);
-        tab1.addActivity("Smoke Test", "Run smoking for the curr app", SmokeActivity.class);
+        tab1.addActivity("Smoke Test", "Run smoking of File & MediaStore APIs test", SmokeActivity.class);
         tab1.addActivity("SaveReadActivity", "Test MediaStore save & read image", SaveReadActivity.class);
         tab1.addActivity("SaveImgActivity", "Test MediaStore save & read image 2", SaveImgActivity.class);
         tab1.addActivity("ConvertActivity", "Test MediaStore uri/file_path convert", ConvertActivity.class);
