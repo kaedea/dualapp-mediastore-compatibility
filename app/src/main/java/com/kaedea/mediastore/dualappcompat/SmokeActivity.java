@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat;
 
 public class SmokeActivity extends AppCompatActivity {
 
+    byte[] fileBytes;
     StringBuilder sb = new StringBuilder();
     TextView mTextView;
 
@@ -86,79 +87,97 @@ public class SmokeActivity extends AppCompatActivity {
     private void prepareFilePath() {
         // File
         {
-            File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/test_img.jpg");
-            if (file.exists()) {
-                publicMediaFilePath = file.getAbsolutePath();
-            } else {
-                try {
-                    file.getParentFile().mkdirs();
-                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
-                    publicMediaFilePath = file.getAbsolutePath();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            file = new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img.jpg");
-            if (file.exists()) {
-                publicMediaFilePathHide = file.getAbsolutePath();
-            } else {
-                try {
-                    file.getParentFile().mkdirs();
-                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
-                    File nomedia = new File(file.getParentFile(), ".nomedia");
-                    if (!nomedia.exists()) {
-                        nomedia.createNewFile();
+            {
+                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/test_img.jpg");
+                if (!file.exists()) {
+                    try {
+                        file.getParentFile().mkdirs();
+                        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                            outputStream.write(getInternalFileBytes());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+                }
+                if (file.exists()) {
+                    publicMediaFilePath = file.getAbsolutePath();
+                }
+            }
+
+            {
+                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img.jpg");
+                if (!file.exists()) {
+                    try {
+                        file.getParentFile().mkdirs();
+                        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                            outputStream.write(getInternalFileBytes());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (file.exists()) {
                     publicMediaFilePathHide = file.getAbsolutePath();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
 
-            file = new File(getApplicationContext().getExternalCacheDir(), "test_img.jpg");
-            if (file.exists()) {
-                sdAppSpecificPath = file.getAbsolutePath();
-            } else {
-                try {
-                    file.getParentFile().mkdirs();
-                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+            {
+                File file = new File(getApplicationContext().getExternalCacheDir(), "test_img.jpg");
+                if (!file.exists()) {
+                    try {
+                        file.getParentFile().mkdirs();
+                        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                            outputStream.write(getInternalFileBytes());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (file.exists()) {
                     sdAppSpecificPath = file.getAbsolutePath();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
 
-            file = new File(Environment.getExternalStorageDirectory() + "/test_img.jpg");
-            if (file.exists()) {
-                sdRootFilePath = file.getAbsolutePath();
-            } else {
-                try {
-                    file.getParentFile().mkdirs();
-                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+            {
+                File file = new File(Environment.getExternalStorageDirectory() + "/test_img.jpg");
+                if (!file.exists()) {
+                    try {
+                        file.getParentFile().mkdirs();
+                        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                            outputStream.write(getInternalFileBytes());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (file.exists()) {
                     sdRootFilePath = file.getAbsolutePath();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
 
-            file = new File(Environment.getExternalStorageDirectory() + "/MyApp/test_img.jpg");
-            if (file.exists()) {
-                sdUnspecificFilePath = file.getAbsolutePath();
-            } else {
-                try {
-                    file.getParentFile().mkdirs();
-                    IOUtils.copy(new FileInputStream(getInternalFile()), new FileOutputStream(file));
+            {
+                File file = new File(Environment.getExternalStorageDirectory() + "/MyApp/test_img.jpg");
+                if (!file.exists()) {
+                    try {
+                        file.getParentFile().mkdirs();
+                        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                            outputStream.write(getInternalFileBytes());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (file.exists()) {
                     sdUnspecificFilePath = file.getAbsolutePath();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
 
-            String text = ClipBoardUtil.paste(this);
-            if (!TextUtils.isEmpty(text)) {
-                if (text.startsWith("/")) {
-                    otherAppPrivateFilePath = text;
+            {
+                String text = ClipBoardUtil.paste(this);
+                if (!TextUtils.isEmpty(text)) {
+                    if (text.startsWith("/")) {
+                        otherAppPrivateFilePath = text;
+                    }
                 }
             }
         }
@@ -209,6 +228,20 @@ public class SmokeActivity extends AppCompatActivity {
             }
         }
         return file;
+    }
+
+    private byte[] getInternalFileBytes() {
+        if (fileBytes == null) {
+            try {
+                InputStream is = getAssets().open("test_img.jpg");
+                fileBytes = new byte[is.available()];
+                //noinspection ResultOfMethodCallIgnored
+                is.read(fileBytes);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return fileBytes;
     }
 
     private void dumpTestStat() {
@@ -393,33 +426,36 @@ public class SmokeActivity extends AppCompatActivity {
 
         // test read file
         try (InputStream inputStream = new FileInputStream(path)) {
-            println("🌝: file open: size=" + inputStream.available());
-
-            // test write file
-            String tempPath = path + "_temp";
-            try (FileOutputStream outputStream = new FileOutputStream(tempPath)) {
-                println("🌝: file write");
-
-                // test copy file
-                try {
-                    IOUtils.copy(inputStream, outputStream);
-                    println("🌝: file copy");
-
-                    // test delete file
-                    try {
-                        boolean delete = new File(tempPath).delete();
-                        println("🌝: file delete = " + delete);
-                    } catch (Exception e) {
-                        println("🌚: file delete, " + e.getMessage());
-                    }
-                } catch (IOException e) {
-                    println("🌚: file copy, " + e.getMessage());
-                }
-            } catch (IOException e) {
-                println("🌚: file write, " + e.getMessage());
-            }
+            println("🌝: file read: size=" + inputStream.available());
         } catch (IOException e) {
-            println("🌚: file open, " + e.getMessage());
+            println("🌚: file read, " + e.getMessage());
+        }
+
+        // test write file
+        try (FileOutputStream outputStream = new FileOutputStream(path)) {
+            outputStream.write(getInternalFileBytes());
+            println("🌝: file write");
+        } catch (IOException e) {
+            println("🌚: file write, " + e.getMessage());
+        }
+
+        // test delete file
+        boolean delete = false;
+        try {
+            delete = new File(path).delete();
+            println((delete ? "🌝" : "🌚") + ": file delete = " + delete);
+        } catch (Exception e) {
+            println("🌚: file delete, " + e.getMessage());
+        }
+
+        // test recover(rewrite) file
+        if (delete) {
+            try (FileOutputStream outputStream = new FileOutputStream(path)) {
+                outputStream.write(getInternalFileBytes());
+                println("🌝: file recover(rewrite)");
+            } catch (IOException e) {
+                println("🌚: file recover(rewrite), " + e.getMessage());
+            }
         }
 
         // test path-uri convert
@@ -443,42 +479,65 @@ public class SmokeActivity extends AppCompatActivity {
         // test read media
         try (InputStream inputStream = MediaStoreOps.readWithMediaStore(getApplicationContext(), uri)) {
             if (inputStream != null) {
-                println("🌝: uri open, available=" + inputStream.available());
-
-                Uri tempUri = MediaStoreOps.pathToUri(getApplicationContext(), new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img_uri_output.jpg").getAbsolutePath());
-                if (tempUri != null) {
-                    // test write media
-                    try (OutputStream outputStream = MediaStoreOps.writeWithMediaStore(getApplicationContext(), uri)) {
-                        if (outputStream != null) {
-                            println("🌝: uri write");
-
-                            // test copy media
-                            try {
-                                int size = IOUtils.copy(inputStream, outputStream);
-                                println("🌝: uri copy, size=" + size);
-
-                                // test delete copied media
-                                if (MediaStoreOps.deleteWithMediaStore(getApplicationContext(), tempUri)) {
-                                    println("🌝: uri delete");
-                                } else {
-                                    println("🌚: uri delete");
-                                }
-                            } catch (IOException e) {
-                                println("🌚: uri copy, " + e.getMessage());
-                            }
-                        } else {
-                            println("🌚: uri write, null outputStream");
-                        }
-                    } catch (IOException e) {
-                        println("🌚: uri outputStream, " + e.getMessage());
-                    }
+                try {
+                    byte[] buffer = new byte[inputStream.available()];
+                    //noinspection ResultOfMethodCallIgnored
+                    inputStream.read(buffer);
+                    println("🌝: uri read");
+                } catch (IOException e) {
+                    println("🌚: uri read, " + e.getMessage());
                 }
             } else {
-                println("🌚: uri open, null inputStream");
+                println("🌚: uri read inputStream, null");
             }
         } catch (IOException e) {
-            println("🌚: uri open, " + e.getMessage());
+            println("🌚: uri read inputStream, " + e.getMessage());
         }
+
+        // test write media
+        try (OutputStream outputStream = MediaStoreOps.writeWithMediaStore(getApplicationContext(), uri)) {
+            if (outputStream != null) {
+                try {
+                    outputStream.write(getInternalFileBytes());
+                    println("🌝: uri write");
+                } catch (IOException e) {
+                    println("🌚: uri write, " + e.getMessage());
+                }
+            } else {
+                println("🌚: uri write outputStream, null");
+            }
+        } catch (IOException e) {
+            println("🌚: uri write outputStream, " + e.getMessage());
+        }
+
+        // If we delete media by uri, the uri can never be open/reused again!
+        // Therefore the delete test is skipped here.
+        //
+        // // test delete media
+        // boolean delete = MediaStoreOps.deleteWithMediaStore(getApplicationContext(), uri);
+        // if (delete) {
+        //     println("🌝: uri delete");
+        // } else {
+        //     println("🌚: uri delete");
+        // }
+        //
+        // // test recover(rewrite) media
+        // if (delete) {
+        //     try (OutputStream outputStream = MediaStoreOps.writeWithMediaStore(getApplicationContext(), uri)) {
+        //         if (outputStream != null) {
+        //             try {
+        //                 outputStream.write(getInternalFileBytes());
+        //                 println("🌝: uri recover(rewrite)");
+        //             } catch (IOException e) {
+        //                 println("🌚: uri recover(rewrite), " + e.getMessage());
+        //             }
+        //         } else {
+        //             println("🌚: uri recover(rewrite) outputStream, null");
+        //         }
+        //     } catch (IOException e) {
+        //         println("🌚: uri recover(rewrite) outputStream, " + e.getMessage());
+        //     }
+        // }
 
         // test path-uri convert
         String uriToPath = MediaStoreOps.uriToPath(this, uri);
