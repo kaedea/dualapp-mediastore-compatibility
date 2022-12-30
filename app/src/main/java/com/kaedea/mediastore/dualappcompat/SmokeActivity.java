@@ -92,6 +92,7 @@ public class SmokeActivity extends AppCompatActivity {
                 if (!file.exists()) {
                     try {
                         file.getParentFile().mkdirs();
+                        file.createNewFile();
                         try (FileOutputStream outputStream = new FileOutputStream(file)) {
                             outputStream.write(getInternalFileBytes());
                         }
@@ -109,6 +110,7 @@ public class SmokeActivity extends AppCompatActivity {
                 if (!file.exists()) {
                     try {
                         file.getParentFile().mkdirs();
+                        file.createNewFile();
                         try (FileOutputStream outputStream = new FileOutputStream(file)) {
                             outputStream.write(getInternalFileBytes());
                         }
@@ -126,6 +128,7 @@ public class SmokeActivity extends AppCompatActivity {
                 if (!file.exists()) {
                     try {
                         file.getParentFile().mkdirs();
+                        file.createNewFile();
                         try (FileOutputStream outputStream = new FileOutputStream(file)) {
                             outputStream.write(getInternalFileBytes());
                         }
@@ -143,6 +146,7 @@ public class SmokeActivity extends AppCompatActivity {
                 if (!file.exists()) {
                     try {
                         file.getParentFile().mkdirs();
+                        file.createNewFile();
                         try (FileOutputStream outputStream = new FileOutputStream(file)) {
                             outputStream.write(getInternalFileBytes());
                         }
@@ -160,6 +164,7 @@ public class SmokeActivity extends AppCompatActivity {
                 if (!file.exists()) {
                     try {
                         file.getParentFile().mkdirs();
+                        file.createNewFile();
                         try (FileOutputStream outputStream = new FileOutputStream(file)) {
                             outputStream.write(getInternalFileBytes());
                         }
@@ -185,7 +190,7 @@ public class SmokeActivity extends AppCompatActivity {
         // Uri
         {
             {
-                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/test_img_uri.jpg");
+                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/test_img.jpg");
                 Uri uri = MediaStoreOps.pathToUri(getApplicationContext(), file.getAbsolutePath());
                 if (uri == null) {
                     uri = MediaStoreOps.saveWithMediaStore(getApplicationContext(), getInternalFile().getAbsolutePath(), file.getAbsolutePath());
@@ -195,7 +200,7 @@ public class SmokeActivity extends AppCompatActivity {
                 }
             }
             {
-                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img_uri.jpg");
+                File file = new File(Environment.getExternalStorageDirectory() + "/Pictures/.temp/test_img.jpg");
                 Uri uri = MediaStoreOps.pathToUri(getApplicationContext(), file.getAbsolutePath());
                 if (uri == null) {
                     try {
@@ -450,9 +455,14 @@ public class SmokeActivity extends AppCompatActivity {
 
         // test recover(rewrite) file
         if (delete) {
-            try (FileOutputStream outputStream = new FileOutputStream(path)) {
-                outputStream.write(getInternalFileBytes());
-                println("🌝: file recover(rewrite)");
+            File file = new File(path);
+            try {
+                //noinspection ResultOfMethodCallIgnored
+                file.createNewFile();
+                try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                    outputStream.write(getInternalFileBytes());
+                    println("🌝: file recover(rewrite)");
+                }
             } catch (IOException e) {
                 println("🌚: file recover(rewrite), " + e.getMessage());
             }
