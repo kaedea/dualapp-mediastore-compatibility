@@ -10,6 +10,7 @@ import com.kaedea.mediastore.dualappcompat.MediaStoreOpsActivity;
 import com.kaedea.mediastore.dualappcompat.ProfileActivity;
 import com.kaedea.mediastore.dualappcompat.SaveImgActivity;
 import com.kaedea.mediastore.dualappcompat.SaveReadActivity;
+import com.kaedea.mediastore.dualappcompat.SendMediaUriActivity;
 import com.kaedea.mediastore.dualappcompat.ShareImgActivity;
 import com.kaedea.mediastore.dualappcompat.SmokeActivity;
 import com.kaedea.mediastore.dualappcompat.ToastCompatActivity;
@@ -34,6 +35,7 @@ public class DemoProvider {
         tab1.addActivity("SaveImgActivity", "Test MediaStore save & read image 2", SaveImgActivity.class);
         tab1.addActivity("ConvertActivity", "Test MediaStore uri/file_path convert", ConvertActivity.class);
         tab1.addActivity("ShareImgActivity", "Test receive simple image sharing", ShareImgActivity.class);
+        tab1.addActivity("SendMediaUriActivity", "Test send Media Uri sharing", SendMediaUriActivity.class);
         tab1.addActivity("ToastCompatActivity", "Test Toast NPE Crash Issue", ToastCompatActivity.class);
         demos.put("Default", tab1);
     }
