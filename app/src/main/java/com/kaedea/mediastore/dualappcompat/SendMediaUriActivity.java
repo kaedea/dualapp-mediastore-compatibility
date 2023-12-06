@@ -24,6 +24,8 @@ public class SendMediaUriActivity extends AppCompatActivity {
 
     StringBuilder sb = new StringBuilder();
     TextView mTextView;
+    Uri mExternalImageUri;
+    Uri mExternalDownloadUri;
     Uri mExternalFileUri;
 
     @Override
@@ -34,9 +36,13 @@ public class SendMediaUriActivity extends AppCompatActivity {
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            mExternalFileUri = queryLastDownloads(this);
+            mExternalImageUri = queryLastMediaUri(this, MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL));
+            mExternalDownloadUri = queryLastMediaUri(this, MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL));
+            mExternalFileUri = queryLastMediaUri(this, MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL));
         }
-        println("MediaUri: " + mExternalFileUri);
+        println("ImageUri: " + mExternalImageUri
+                + "\nDownloadUri:" + mExternalDownloadUri
+                + "\nFileUri:" + mExternalFileUri);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
@@ -45,9 +51,8 @@ public class SendMediaUriActivity extends AppCompatActivity {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    private static Uri queryLastDownloads(@NonNull Context context) {
-        Uri contentUri = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL);
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static Uri queryLastMediaUri(@NonNull Context context, Uri contentUri) {
         try (Cursor cursor = context.getContentResolver().query(
                 contentUri,
                 new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME, /*MediaStore.MediaColumns.RELATIVE_PATH,*/ MediaStore.MediaColumns.DATA},
@@ -64,19 +69,35 @@ public class SendMediaUriActivity extends AppCompatActivity {
                 }
             }
         } catch (Throwable e) {
-            Log.e("SendMediaUriActivity", "convert pathToUri fail", e);
+            Log.e("SendMediaUriActivity", "queryLastMediaUri fail", e);
         }
         return null;
     }
 
-    public void onSendUri(View view) {
-        if (mExternalFileUri != null) {
-            Intent shareIntent = new Intent();
-            shareIntent.setAction(Intent.ACTION_SEND);
-            shareIntent.putExtra(Intent.EXTRA_STREAM, mExternalFileUri);
-            shareIntent.setType(getContentResolver().getType(mExternalFileUri));
-            startActivity(Intent.createChooser(shareIntent, "Send MediaUri"));
+    public void onSendImageUri(View view) {
+        if (mExternalImageUri != null) {
+            onSendMediaUri(mExternalImageUri);
         }
+    }
+
+    public void onSendDownloadUri(View view) {
+        if (mExternalDownloadUri != null) {
+            onSendMediaUri(mExternalDownloadUri);
+        }
+    }
+
+    public void onSendFileUri(View view) {
+        if (mExternalFileUri != null) {
+            onSendMediaUri(mExternalFileUri);
+        }
+    }
+
+    public void onSendMediaUri(Uri uri) {
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        shareIntent.setType(getContentResolver().getType(mExternalFileUri));
+        startActivity(Intent.createChooser(shareIntent, "Send MediaUri"));
     }
 
     private void println(String msg) {

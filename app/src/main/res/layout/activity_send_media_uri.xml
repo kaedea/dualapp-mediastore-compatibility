@@ -8,18 +8,6 @@
     android:gravity="center"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/text"
-        android:scrollbars = "vertical"
-        android:textAlignment="textStart"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/layout_bottom"
-        android:layout_margin="15dp"
-        android:background="#ccc"
-        android:gravity="center"
-        android:orientation="horizontal" />
-
     <LinearLayout
         android:id="@+id/layout_bottom"
         android:layout_width="match_parent"
@@ -27,16 +15,49 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="5dp"
         android:gravity="top"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
         <Button
-            android:textSize="10sp"
             android:layout_width="match_parent"
             android:layout_height="58dp"
-            android:layout_margin="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_weight="1"
-            android:onClick="onSendUri"
-            android:text="Send Uri" />
+            android:onClick="onSendImageUri"
+            android:text="Send Images Uri"
+            android:textSize="10sp" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:onClick="onSendDownloadUri"
+            android:text="Send Downloads Uri"
+            android:textSize="10sp" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:onClick="onSendFileUri"
+            android:text="Send Files Uri"
+            android:textSize="10sp" />
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/layout_bottom"
+        android:layout_margin="5dp"
+        android:background="#ccc"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:scrollbars="vertical"
+        android:textAlignment="textStart" />
 </RelativeLayout>
