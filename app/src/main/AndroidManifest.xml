@@ -26,6 +26,15 @@
         <activity android:name=".ConvertActivity" />
         <activity android:name=".SaveImgActivity" />
         <activity android:name=".SaveReadActivity" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.kaedea.mediastore.dualappcompat.test.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
         <activity android:name=".SendMediaUriActivity" />
         <activity
             android:name=".ShareImgActivity"

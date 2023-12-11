@@ -23,29 +23,89 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_weight="1"
-            android:onClick="onSendImageUri"
+            android:onClick="onSendImagesUri"
             android:text="Send Images Uri"
             android:textSize="10sp" />
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:onClick="onSendDownloadUri"
-            android:text="Send Downloads Uri"
-            android:textSize="10sp" />
 
-        <Button
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="58dp"
+            android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:onClick="onSendFileUri"
-            android:text="Send Files Uri"
-            android:textSize="10sp" />
+            android:layout_marginRight="10dp">
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:onClick="onSendDownloadsImageUri"
+                android:text="Send Downloads-IMG Uri"
+                android:textSize="10sp" />
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="1"
+                android:onClick="onSendDownloadsDocumentUri"
+                android:text="Send Downloads-DOC Uri"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp">
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginRight="5dp"
+
+                android:layout_weight="1"
+                android:onClick="onSendFilesImageUri"
+                android:text="Send Files-IMG Uri"
+                android:textSize="10sp" />
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginLeft="5dp"
+
+                android:layout_weight="1"
+                android:onClick="onSendFilesDocumentUri"
+                android:text="Send Files-DOC Uri"
+                android:textSize="10sp" />
+
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp">
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:onClick="onSendFileProviderImageUri"
+                android:text="Send FileProvider Image"
+                android:textSize="10sp" />
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="1"
+                android:onClick="onSendFileProviderDocumentUri"
+                android:text="Send FileProvider File"
+                android:textSize="10sp" />
+        </LinearLayout>
+
 
     </LinearLayout>
 
