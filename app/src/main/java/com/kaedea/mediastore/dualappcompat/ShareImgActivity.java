@@ -1,11 +1,16 @@
 package com.kaedea.mediastore.dualappcompat;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
@@ -19,6 +24,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -56,33 +63,13 @@ public class ShareImgActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 
-        println("Receive imageUri: " + imageUri);
-
-        if (imageUri != null) {
-            println("readImgByUri: " + imageUri.toString());
-            try (InputStream inputStream = this.getContentResolver().openInputStream(imageUri)) {
-                File tempFile = new File(this.getCacheDir(), System.currentTimeMillis() + ".jpg");
-                tempFile.getParentFile().mkdir();
-                tempFile.createNewFile();
-                println("copy2File: " + tempFile.getAbsolutePath());
-                IOUtils.copy(inputStream, new FileOutputStream(tempFile));
-                println("copy2File success: " + tempFile.exists());
-
-            } catch (Exception e) {
-                println("readImgByUri fail: " +  e.getMessage());
-            }
-
-            println("uriToPath: " + imageUri);
-            String uriToPath = MediaStoreOps.uriToPath(this, imageUri);
-            if (uriToPath != null) {
-                println("uriToPath success: " + uriToPath);
-                println("readImgByPath: " + uriToPath);
-                File file = new File(uriToPath);
-                println("fileExits: " + file.exists());
-
-                try (InputStream inputStream = new FileInputStream(file)) {
+            println("Receive ACTION_SEND Uri: " + imageUri);
+            if (imageUri != null) {
+                println("readImgByUri: " + imageUri.toString());
+                try (InputStream inputStream = this.getContentResolver().openInputStream(imageUri)) {
                     File tempFile = new File(this.getCacheDir(), System.currentTimeMillis() + ".jpg");
                     tempFile.getParentFile().mkdir();
                     tempFile.createNewFile();
@@ -91,13 +78,37 @@ public class ShareImgActivity extends AppCompatActivity {
                     println("copy2File success: " + tempFile.exists());
 
                 } catch (Exception e) {
-                    println("readImgByPath fail: " +  e.getMessage());
+                    println("readImgByUri fail: " +  e.getMessage());
                 }
-            } else {
-                println("uriToPath fail!");
-            }
 
-            println("-------------------");
+                println("uriToPath: " + imageUri);
+                String uriToPath = MediaStoreOps.uriToPath(this, imageUri);
+                if (uriToPath != null) {
+                    println("uriToPath success: " + uriToPath);
+                    println("readImgByPath: " + uriToPath);
+                    File file = new File(uriToPath);
+                    println("fileExits: " + file.exists());
+
+                    try (InputStream inputStream = new FileInputStream(file)) {
+                        File tempFile = new File(this.getCacheDir(), System.currentTimeMillis() + ".jpg");
+                        tempFile.getParentFile().mkdir();
+                        tempFile.createNewFile();
+                        println("copy2File: " + tempFile.getAbsolutePath());
+                        IOUtils.copy(inputStream, new FileOutputStream(tempFile));
+                        println("copy2File success: " + tempFile.exists());
+
+                    } catch (Exception e) {
+                        println("readImgByPath fail: " +  e.getMessage());
+                    }
+                } else {
+                    println("uriToPath fail!");
+                }
+
+                println("-------------------");
+            }
+        } else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            Uri uri = intent.getData();
+            println("Receive ACTION_SEND Uri: " + uri);
         }
     }
 
