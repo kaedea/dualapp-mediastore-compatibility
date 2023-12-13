@@ -1,2 +1,4 @@
 include ':app'
+include ':hidden-api-stub'
+// include ':hidden-api-refine' // maybe incompatible with lower AGP(4.1.x)
 rootProject.name = "DualAppMediastoreTest"

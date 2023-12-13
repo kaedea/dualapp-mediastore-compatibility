@@ -13,6 +13,7 @@ import com.kaedea.mediastore.dualappcompat.SaveReadActivity;
 import com.kaedea.mediastore.dualappcompat.SendMediaUriActivity;
 import com.kaedea.mediastore.dualappcompat.ShareImgActivity;
 import com.kaedea.mediastore.dualappcompat.SmokeActivity;
+import com.kaedea.mediastore.dualappcompat.SystemApiCallActivity;
 import com.kaedea.mediastore.dualappcompat.ToastCompatActivity;
 
 import androidx.collection.ArrayMap;
@@ -37,6 +38,7 @@ public class DemoProvider {
         tab1.addActivity("ShareImgActivity", "Test receive simple image sharing", ShareImgActivity.class);
         tab1.addActivity("SendMediaUriActivity", "Test send Media Uri sharing", SendMediaUriActivity.class);
         tab1.addActivity("ToastCompatActivity", "Test Toast NPE Crash Issue", ToastCompatActivity.class);
+        tab1.addActivity("SystemApiCallActivity", "Test Call Hidden SystemApi & SystemService", SystemApiCallActivity.class);
         demos.put("Default", tab1);
     }
 }

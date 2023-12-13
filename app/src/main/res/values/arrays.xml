@@ -1,0 +1,6 @@
+<resources>
+    <array name="initial_slider_values">
+        <item>0</item>
+        <item>24</item>
+    </array>
+</resources>
