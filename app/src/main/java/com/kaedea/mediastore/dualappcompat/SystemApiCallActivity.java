@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.BatteryConsumer;
+import android.os.BatteryManager;
 import android.os.BatteryStatsManager;
 import android.os.BatteryUsageStats;
 import android.os.BatteryUsageStatsQuery;
@@ -12,29 +13,45 @@ import android.os.Bundle;
 import android.os.UidBatteryConsumer;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.internal.app.IBatteryStats;
 import com.google.android.material.slider.RangeSlider;
+import com.kaedea.mediastore.dualappcompat.utils.Singleton;
 
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import rikka.shizuku.Shizuku;
+import rikka.shizuku.ShizukuBinderWrapper;
+import rikka.shizuku.SystemServiceHelper;
+
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
 public class SystemApiCallActivity extends AppCompatActivity {
+    public static final String BATTERY_STATS_SERVICE = "batterystats";
+    public static final String APP_WECHAT = "com.tencent.mm"; // WeChat as demo app
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     StringBuilder sb = new StringBuilder();
     TextView mTextView;
     RangeSlider mSlider;
+    CheckBox mChecker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +60,7 @@ public class SystemApiCallActivity extends AppCompatActivity {
         mTextView = findViewById(R.id.text);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
         mSlider = findViewById(R.id.slider);
+        mChecker = findViewById(R.id.check_inTime);
 
         mSlider.addOnChangeListener((slider, value, fromUser) -> {
             if (fromUser) {
@@ -54,6 +72,20 @@ public class SystemApiCallActivity extends AppCompatActivity {
                 println(text.toString(), true);
             }
         });
+        mChecker.setOnCheckedChangeListener((buttonView, isChecked) -> mSlider.setEnabled(!isChecked));
+        mChecker.setChecked(true);
+
+        Shizuku.addBinderReceivedListenerSticky(BINDER_RECEIVED_LISTENER);
+        Shizuku.addBinderDeadListener(BINDER_DEAD_LISTENER);
+        Shizuku.addRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Shizuku.removeBinderReceivedListener(BINDER_RECEIVED_LISTENER);
+        Shizuku.removeBinderDeadListener(BINDER_DEAD_LISTENER);
+        Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER);
     }
 
 
@@ -67,10 +99,10 @@ public class SystemApiCallActivity extends AppCompatActivity {
         // if (batterystats != null) {
         //
         // }
-        BatteryStatsManager manager = (BatteryStatsManager) getSystemService("batterystats");
+        BatteryStatsManager manager = (BatteryStatsManager) getSystemService(BATTERY_STATS_SERVICE);
         if (manager != null) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                BatteryUsageStatsQuery statsQuery = buildQuery((int) (24 - mSlider.getValues().get(0)), (int) (24 - mSlider.getValues().get(1)));
+                BatteryUsageStatsQuery statsQuery = buildQuery((int) (24 - mSlider.getValues().get(0)), (int) (24 - mSlider.getValues().get(1)), mChecker.isChecked());
                 BatteryUsageStats batteryUsageStats = (BatteryUsageStats) HiddenApiBypass.invoke(BatteryStatsManager.class, manager, "getBatteryUsageStats", statsQuery);
                 if (batteryUsageStats != null) {
                     dumpBatteryUsageStats(batteryUsageStats);
@@ -78,7 +110,7 @@ public class SystemApiCallActivity extends AppCompatActivity {
                     List<UidBatteryConsumer> consumers = (List<UidBatteryConsumer>) HiddenApiBypass.invoke(BatteryUsageStats.class, batteryUsageStats, "getUidBatteryConsumers");
                     if (!consumers.isEmpty()) {
                         dumpTopApps(consumers);
-                        dumpForApp(consumers, "com.tencent.mm"); // WeChat as test
+                        dumpForApp(consumers, APP_WECHAT);
                     }
                 }
             }
@@ -101,8 +133,8 @@ public class SystemApiCallActivity extends AppCompatActivity {
         double drainPower = (double) HiddenApiBypass.invoke(BatteryUsageStats.class, batteryUsageStats, "getConsumedPower");
         int fromHourAgo = (int) (24 - mSlider.getValues().get(0));
         int toHourAgo = (int) (24 - mSlider.getValues().get(1));
-        if (fromHourAgo == toHourAgo) {
-            sb.append("Query: ").append("INVALID").append("\n");
+        if (mChecker.isChecked() || fromHourAgo == toHourAgo) {
+            sb.append("Query: ").append("实时数据").append("\n");
         } else {
             sb.append("Query: ").append(dateFormat.format(new Date(System.currentTimeMillis() - (fromHourAgo * 60 * 60 * 1000L)))).append(" ~ ").append(dateFormat.format(new Date(System.currentTimeMillis() - (toHourAgo * 60 * 60 * 1000L)))).append("\n");
         }
@@ -182,15 +214,16 @@ public class SystemApiCallActivity extends AppCompatActivity {
         println(sb.toString());
     }
 
-    private static BatteryUsageStatsQuery buildQuery(int fromHourAgo, int toHourAgo) {
+    private static BatteryUsageStatsQuery buildQuery(int fromHourAgo, int toHourAgo, boolean justInTime) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             BatteryUsageStatsQuery.Builder builder = (BatteryUsageStatsQuery.Builder) HiddenApiBypass.newInstance(BatteryUsageStatsQuery.Builder.class);
             HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "includeBatteryHistory");
             HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "includeProcessStateData");
             HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "includePowerModels");
             HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "includeVirtualUids");
-            if (fromHourAgo > toHourAgo) {
-                HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "aggregateSnapshots", System.currentTimeMillis() - (fromHourAgo * 60 * 60 * 1000L), System.currentTimeMillis() - (toHourAgo * 60 * 60 * 1000L));
+            if (!justInTime && fromHourAgo > toHourAgo) {
+                long deltaMs = 10 * 60 * 1000L;
+                HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "aggregateSnapshots", System.currentTimeMillis() - deltaMs - (fromHourAgo * 60 * 60 * 1000L), System.currentTimeMillis() + deltaMs - (toHourAgo * 60 * 60 * 1000L));
             }
             HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "setMaxStatsAgeMs", 0L);
             return (BatteryUsageStatsQuery) HiddenApiBypass.invoke(BatteryUsageStatsQuery.Builder.class, builder, "build");
@@ -239,4 +272,86 @@ public class SystemApiCallActivity extends AppCompatActivity {
         return input + new String(new char[(fixedLength - input.length())]).replace("\0", " ");
     }
 
+    private void handleCallBatteryStatsViaShizuku() {
+        sb.setLength(0);
+        println("handleCallBatteryStatsViaShizuku");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            BatteryUsageStatsQuery statsQuery = buildQuery((int) (24 - mSlider.getValues().get(0)), (int) (24 - mSlider.getValues().get(1)), mChecker.isChecked());
+            IBatteryStats batteryStats = BATTERY_STATS_MANAGER.get();
+            List<BatteryUsageStats> batteryUsageStatsList = (List<BatteryUsageStats>) HiddenApiBypass.invoke(batteryStats.getClass(), batteryStats, "getBatteryUsageStats", Collections.singletonList(statsQuery));
+            if (batteryUsageStatsList != null && !batteryUsageStatsList.isEmpty()) {
+                BatteryUsageStats batteryUsageStats = batteryUsageStatsList.get(0);
+                dumpBatteryUsageStats(batteryUsageStats);
+                // noinspection unchecked
+                List<UidBatteryConsumer> consumers = (List<UidBatteryConsumer>) HiddenApiBypass.invoke(BatteryUsageStats.class, batteryUsageStats, "getUidBatteryConsumers");
+                if (!consumers.isEmpty()) {
+                    dumpTopApps(consumers);
+                    dumpForApp(consumers, APP_WECHAT);
+                }
+            }
+        }
+    }
+
+    /**
+     * adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh
+     */
+    public void onCallBatteryStatsViaShizuku(View view) {
+        if (checkShizukuPermission(REQUEST_CODE_BATTERY_STATS)) {
+            handleCallBatteryStatsViaShizuku();
+        }
+    }
+
+    private boolean checkShizukuPermission(int code) {
+        if (Shizuku.isPreV11()) {
+            return false;
+        }
+        try {
+            if (Shizuku.checkSelfPermission() == PERMISSION_GRANTED) {
+                return true;
+            } else if (Shizuku.shouldShowRequestPermissionRationale()) {
+                println("User denied permission (shouldShowRequestPermissionRationale=true)");
+                return false;
+            } else {
+                Shizuku.requestPermission(code);
+                return false;
+            }
+        } catch (Throwable e) {
+            println(Log.getStackTraceString(e));
+        }
+
+        return false;
+    }
+
+    private static final int REQUEST_CODE_BATTERY_STATS = 1;
+    private final Shizuku.OnBinderReceivedListener BINDER_RECEIVED_LISTENER = () -> {
+        if (Shizuku.isPreV11()) {
+            println("Shizuku pre-v11 is not supported");
+        } else {
+            println("Binder received");
+        }
+    };
+    private final Shizuku.OnBinderDeadListener BINDER_DEAD_LISTENER = () -> println("Binder dead");
+    private final Shizuku.OnRequestPermissionResultListener REQUEST_PERMISSION_RESULT_LISTENER = this::onRequestPermissionsResult;
+
+    private void onRequestPermissionsResult(int requestCode, int grantResult) {
+        if (grantResult == PERMISSION_GRANTED) {
+            switch (requestCode) {
+                case REQUEST_CODE_BATTERY_STATS:
+                    handleCallBatteryStatsViaShizuku();
+                    break;
+                default:
+                    println("Unknown Code: " + requestCode);
+                    break;
+            }
+        } else {
+            println("User denied permission");
+        }
+    }
+
+    private static final Singleton<IBatteryStats> BATTERY_STATS_MANAGER = new Singleton<IBatteryStats>() {
+        @Override
+        protected IBatteryStats create() {
+            return IBatteryStats.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService(BATTERY_STATS_SERVICE)));
+        }
+    };
 }

@@ -32,16 +32,8 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_centerInParent="true"
-                android:text="开始" />
-
-            <TextView
-                android:id="@+id/tv_end"
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerInParent="true"
-                android:text="结束" />
+                android:text="开始"
+                android:textSize="10sp" />
 
             <com.google.android.material.slider.RangeSlider
                 android:id="@+id/slider"
@@ -57,6 +49,25 @@
                 android:valueTo="24"
                 app:values="@array/initial_slider_values" />
 
+
+            <TextView
+                android:id="@+id/tv_end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_toLeftOf="@+id/check_inTime"
+                android:text="结束"
+                android:textSize="10sp" />
+
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/check_inTime"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:text="实时"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
         </RelativeLayout>
 
         <Button
@@ -67,6 +78,16 @@
             android:layout_weight="1"
             android:onClick="onCallBatteryStats"
             android:text="Call BatteryStats"
+            android:textSize="10sp" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:onClick="onCallBatteryStatsViaShizuku"
+            android:text="Call BatteryStats Via Shizuku"
             android:textSize="10sp" />
 
 

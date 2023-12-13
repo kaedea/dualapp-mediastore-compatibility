@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.1.2"
-
+        // classpath("dev.rikka.tools.refine:gradle-plugin:4.4.0")
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -18,6 +18,12 @@ allprojects {
         jcenter()
     }
 }
+
+// subprojects {
+//     plugins.withId("com.android.base") {
+//         plugins.apply('dev.rikka.tools.refine')
+//     }
+// }
 
 task clean(type: Delete) {
     delete rootProject.buildDir

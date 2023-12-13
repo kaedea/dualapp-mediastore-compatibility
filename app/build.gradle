@@ -39,7 +39,14 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
+    def shizuku_version = "13.1.5"
+    implementation "dev.rikka.shizuku:api:$shizuku_version"
+    implementation "dev.rikka.shizuku:provider:$shizuku_version"
+
+    implementation("dev.rikka.tools.refine:runtime:4.4.0")
     implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:4.3'
     compileOnly project(":hidden-api-stub")
+    // compileOnly project(':hidden-api-refine')
+
     implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 }
