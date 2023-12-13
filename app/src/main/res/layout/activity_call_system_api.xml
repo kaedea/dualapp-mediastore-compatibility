@@ -90,6 +90,16 @@
             android:text="Call BatteryStats Via Shizuku"
             android:textSize="10sp" />
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:onClick="onOpenBatteryUsageStats"
+            android:text="Call BatteryStats &amp; Open"
+            android:textSize="10sp" />
+
 
     </LinearLayout>
 

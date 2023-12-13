@@ -1,8 +1,10 @@
 package com.kaedea.mediastore.dualappcompat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.BatteryConsumer;
 import android.os.BatteryManager;
 import android.os.BatteryStatsManager;
@@ -11,6 +13,9 @@ import android.os.BatteryUsageStatsQuery;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.UidBatteryConsumer;
+import android.os.health.HealthStats;
+import android.os.health.SystemHealthManager;
+import android.os.health.UidHealthStats;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -21,21 +26,28 @@ import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.android.internal.app.IBatteryStats;
 import com.google.android.material.slider.RangeSlider;
 import com.kaedea.mediastore.dualappcompat.utils.Singleton;
 
+import org.apache.commons.io.FileUtils;
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import rikka.shizuku.Shizuku;
 import rikka.shizuku.ShizukuBinderWrapper;
@@ -182,6 +194,8 @@ public class SystemApiCallActivity extends AppCompatActivity {
         }
 
         if (myBatteryConsumer != null) {
+            // HiddenApiBypass.invoke(BatteryConsumer.class, myBatteryConsumer, "getKeys", 0); // 0-17
+            
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             HiddenApiBypass.invoke(UidBatteryConsumer.class, myBatteryConsumer, "dump", pw, false);
@@ -208,6 +222,30 @@ public class SystemApiCallActivity extends AppCompatActivity {
                 sb.append(prefix).append("\n").append(msg);
             } else {
                 sb.append(sw);
+            }
+
+            // HealthStats
+            if (mChecker.isChecked()) {
+                long procStatTopMs = 0, fgActivityMs = 0;
+                SystemHealthManager manager = getSystemService(SystemHealthManager.class);
+                if (manager != null) {
+                    HealthStats healthStats = manager.takeUidSnapshot(appUid);
+                    if ("UidHealthStats".equals(healthStats.getDataType())) {
+                        if (healthStats.hasTimer(UidHealthStats.TIMER_PROCESS_STATE_TOP_MS)) {
+                            procStatTopMs = healthStats.getTimerTime(UidHealthStats.TIMER_PROCESS_STATE_TOP_MS);
+                        }
+                        if (healthStats.hasTimer(UidHealthStats.TIMER_FOREGROUND_ACTIVITY)) {
+                            fgActivityMs = healthStats.getTimerTime(UidHealthStats.TIMER_FOREGROUND_ACTIVITY);
+                        }
+                    }
+                }
+                sb.append("\nHealthStats:").append("\nprocess_state_top=");
+                formatTimeMs(sb, procStatTopMs);
+                sb.append("\nforeground_activity=");
+                formatTimeMs(sb, fgActivityMs);
+                sb.append("\n");
+            } else {
+                sb.append("\nHealthStats:").append("\nOnly work for in-time mode");
             }
         }
 
@@ -251,6 +289,41 @@ public class SystemApiCallActivity extends AppCompatActivity {
             return null;
         }
         return null;
+    }
+
+    private static void formatTimeRaw(StringBuilder out, long seconds) {
+        long days = seconds / (60 * 60 * 24);
+        if (days != 0) {
+            out.append(days);
+            out.append("d ");
+        }
+        long used = days * 60 * 60 * 24;
+
+        long hours = (seconds - used) / (60 * 60);
+        if (hours != 0 || used != 0) {
+            out.append(hours);
+            out.append("h ");
+        }
+        used += hours * 60 * 60;
+
+        long mins = (seconds-used) / 60;
+        if (mins != 0 || used != 0) {
+            out.append(mins);
+            out.append("m ");
+        }
+        used += mins * 60;
+
+        if (seconds != 0 || used != 0) {
+            out.append(seconds-used);
+            out.append("s ");
+        }
+    }
+
+    public static void formatTimeMs(StringBuilder sb, long time) {
+        long sec = time / 1000;
+        formatTimeRaw(sb, sec);
+        sb.append(time - (sec * 1000));
+        sb.append("ms ");
     }
 
     private void println(String msg) {
@@ -354,4 +427,39 @@ public class SystemApiCallActivity extends AppCompatActivity {
             return IBatteryStats.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService(BATTERY_STATS_SERVICE)));
         }
     };
+
+
+    public void onOpenBatteryUsageStats(View view) {
+        BatteryStatsManager manager = (BatteryStatsManager) getSystemService(BATTERY_STATS_SERVICE);
+        if (manager != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                BatteryUsageStatsQuery statsQuery = buildQuery((int) (24 - mSlider.getValues().get(0)), (int) (24 - mSlider.getValues().get(1)), mChecker.isChecked());
+                BatteryUsageStats batteryUsageStats = (BatteryUsageStats) HiddenApiBypass.invoke(BatteryStatsManager.class, manager, "getBatteryUsageStats", statsQuery);
+                if (batteryUsageStats != null) {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    HiddenApiBypass.invoke(BatteryUsageStats.class, batteryUsageStats, "dump", pw, "");
+                    pw.flush();
+                    onOpenPainText(sw.toString());
+                }
+            }
+        }
+    }
+
+    private void onOpenPainText(String text) {
+        File file = new File(getFilesDir(), "shared/battery-stats.txt");
+        try {
+            file.delete();
+            file.getParentFile().mkdirs();
+            FileUtils.write(file, text, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Uri fileUri = FileProvider.getUriForFile(this, this.getPackageName() + ".fileprovider", file);
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+        intent.setDataAndType(fileUri, getContentResolver().getType(fileUri));
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(intent, "BatteryUsageStats"));
+    }
 }
