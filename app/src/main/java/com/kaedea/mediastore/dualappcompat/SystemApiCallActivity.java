@@ -100,6 +100,14 @@ public class SystemApiCallActivity extends AppCompatActivity {
         Shizuku.removeRequestPermissionResultListener(REQUEST_PERMISSION_RESULT_LISTENER);
     }
 
+    public void onSendAdbCommand(View view) {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, "adb shell pm grant " + getPackageName() + " android.permission.BATTERY_STATS\n\n" + "FAQ: https://shizuku.rikka.app/guide/setup/#faq" );
+        sendIntent.setType("text/plain");
+        Intent shareIntent = Intent.createChooser(sendIntent, "Enable BATTERY_STATS Permission");
+        startActivity(shareIntent);
+    }
 
     /**
      * adb shell pm grant com.kaedea.mediastore.dualappcompat.test android.permission.BATTERY_STATS

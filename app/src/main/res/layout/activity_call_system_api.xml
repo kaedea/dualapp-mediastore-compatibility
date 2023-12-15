@@ -70,35 +70,57 @@
 
         </RelativeLayout>
 
-        <Button
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:onClick="onCallBatteryStats"
-            android:text="Call BatteryStats"
-            android:textSize="10sp" />
+            android:layout_height="wrap_content">
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:onClick="onCallBatteryStatsViaShizuku"
-            android:text="Call BatteryStats Via Shizuku"
-            android:textSize="10sp" />
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:onClick="onSendAdbCommand"
+                android:text="Copy ADB COMMAND"
+                android:textSize="10sp" />
 
-        <Button
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="1"
+                android:onClick="onCallBatteryStats"
+                android:text="Call BatteryStats"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:onClick="onOpenBatteryUsageStats"
-            android:text="Call BatteryStats &amp; Open"
-            android:textSize="10sp" />
+            android:layout_height="wrap_content">
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:onClick="onCallBatteryStatsViaShizuku"
+                android:text="Call BatteryStats Via Shizuku"
+                android:textSize="10sp" />
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="1"
+                android:onClick="onOpenBatteryUsageStats"
+                android:text="Call BatteryStats &amp; Open"
+                android:textSize="10sp" />
+    </LinearLayout>
+
 
 
     </LinearLayout>
