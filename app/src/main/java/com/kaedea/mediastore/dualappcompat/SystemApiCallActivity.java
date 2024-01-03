@@ -233,8 +233,10 @@ public class SystemApiCallActivity extends AppCompatActivity {
             }
 
             // HealthStats
+            sb.append("\n-----");
             if (mChecker.isChecked()) {
                 long procStatTopMs = 0, fgActivityMs = 0;
+                long mobileRadioActiveMs = 0, mobileIdleMs = 0, mobileRxMs = 0, mobileTxMs = 0;
                 SystemHealthManager manager = getSystemService(SystemHealthManager.class);
                 if (manager != null) {
                     HealthStats healthStats = manager.takeUidSnapshot(appUid);
@@ -245,15 +247,38 @@ public class SystemApiCallActivity extends AppCompatActivity {
                         if (healthStats.hasTimer(UidHealthStats.TIMER_FOREGROUND_ACTIVITY)) {
                             fgActivityMs = healthStats.getTimerTime(UidHealthStats.TIMER_FOREGROUND_ACTIVITY);
                         }
+                        if (healthStats.hasTimer(UidHealthStats.TIMER_MOBILE_RADIO_ACTIVE)) {
+                            mobileRadioActiveMs = healthStats.getTimerTime(UidHealthStats.TIMER_MOBILE_RADIO_ACTIVE);
+                        }
+                        if (healthStats.hasMeasurement(UidHealthStats.MEASUREMENT_MOBILE_IDLE_MS)) {
+                            mobileIdleMs = healthStats.getMeasurement(UidHealthStats.MEASUREMENT_MOBILE_IDLE_MS);
+                        }
+                        if (healthStats.hasMeasurement(UidHealthStats.MEASUREMENT_MOBILE_RX_MS)) {
+                            mobileRxMs = healthStats.getMeasurement(UidHealthStats.MEASUREMENT_MOBILE_RX_MS);
+                        }
+                        if (healthStats.hasMeasurement(UidHealthStats.MEASUREMENT_MOBILE_TX_MS)) {
+                            mobileTxMs = healthStats.getMeasurement(UidHealthStats.MEASUREMENT_MOBILE_TX_MS);
+                        }
                     }
                 }
                 sb.append("\nHealthStats:").append("\nprocess_state_top=");
                 formatTimeMs(sb, procStatTopMs);
                 sb.append("\nforeground_activity=");
                 formatTimeMs(sb, fgActivityMs);
+
+                sb.append("\nMobileRadio:").append("\nmobile_radio_active=");
+                formatTimeMs(sb, mobileRadioActiveMs);
+                sb.append("\nmobile_idle_ms=");
+                formatTimeMs(sb, mobileIdleMs);
+                sb.append("\nmobile_rx_ms=");
+                formatTimeMs(sb, mobileRxMs);
+                sb.append("\nmobile_tx_ms=");
+                formatTimeMs(sb, mobileTxMs);
+
                 sb.append("\n");
             } else {
-                sb.append("\nHealthStats:").append("\nOnly work for in-time mode");
+                sb.append("\nMetaData:").append("\nOnly work for in-time mode");
+                sb.append("\n");
             }
         }
 
