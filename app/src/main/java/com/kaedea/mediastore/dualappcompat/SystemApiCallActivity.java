@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.UidBatteryConsumer;
 import android.os.health.HealthStats;
+import android.os.health.HealthStatsParceler;
 import android.os.health.SystemHealthManager;
 import android.os.health.UidHealthStats;
 import android.text.TextUtils;
@@ -130,7 +131,7 @@ public class SystemApiCallActivity extends AppCompatActivity {
                     List<UidBatteryConsumer> consumers = (List<UidBatteryConsumer>) HiddenApiBypass.invoke(BatteryUsageStats.class, batteryUsageStats, "getUidBatteryConsumers");
                     if (!consumers.isEmpty()) {
                         dumpTopApps(consumers);
-                        dumpForApp(consumers, APP_WECHAT);
+                        dumpForApp(consumers, APP_WECHAT, false);
                     }
                 }
             }
@@ -187,7 +188,7 @@ public class SystemApiCallActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.P)
-    private void dumpForApp(List<UidBatteryConsumer> consumers, String pkgName) {
+    private void dumpForApp(List<UidBatteryConsumer> consumers, String pkgName, boolean byShizuku) {
         StringBuilder sb = new StringBuilder("Power for app: " + pkgName + "\n");
         int appUid = findAppUid(this, pkgName);
         UidBatteryConsumer myBatteryConsumer = null;
@@ -237,9 +238,19 @@ public class SystemApiCallActivity extends AppCompatActivity {
             if (mChecker.isChecked()) {
                 long procStatTopMs = 0, fgActivityMs = 0;
                 long mobileRadioActiveMs = 0, mobileIdleMs = 0, mobileRxMs = 0, mobileTxMs = 0;
-                SystemHealthManager manager = getSystemService(SystemHealthManager.class);
-                if (manager != null) {
-                    HealthStats healthStats = manager.takeUidSnapshot(appUid);
+                HealthStats healthStats = null;
+                if (byShizuku) {
+                    IBatteryStats batteryStats = BATTERY_STATS_MANAGER.get();
+                    HealthStatsParceler parceler = (HealthStatsParceler) HiddenApiBypass.invoke(batteryStats.getClass(), batteryStats, "takeUidSnapshot", appUid);
+                    healthStats = (HealthStats) HiddenApiBypass.invoke(parceler.getClass(), parceler, "getHealthStats");
+                } else {
+                    SystemHealthManager manager = getSystemService(SystemHealthManager.class);
+                    if (manager != null) {
+                        healthStats = manager.takeUidSnapshot(appUid);
+                    }
+                }
+
+                if (healthStats != null) {
                     if ("UidHealthStats".equals(healthStats.getDataType())) {
                         if (healthStats.hasTimer(UidHealthStats.TIMER_PROCESS_STATE_TOP_MS)) {
                             procStatTopMs = healthStats.getTimerTime(UidHealthStats.TIMER_PROCESS_STATE_TOP_MS);
@@ -261,6 +272,7 @@ public class SystemApiCallActivity extends AppCompatActivity {
                         }
                     }
                 }
+
                 sb.append("\nHealthStats:").append("\nprocess_state_top=");
                 formatTimeMs(sb, procStatTopMs);
                 sb.append("\nforeground_activity=");
@@ -392,7 +404,7 @@ public class SystemApiCallActivity extends AppCompatActivity {
                 List<UidBatteryConsumer> consumers = (List<UidBatteryConsumer>) HiddenApiBypass.invoke(BatteryUsageStats.class, batteryUsageStats, "getUidBatteryConsumers");
                 if (!consumers.isEmpty()) {
                     dumpTopApps(consumers);
-                    dumpForApp(consumers, APP_WECHAT);
+                    dumpForApp(consumers, APP_WECHAT, true);
                 }
             }
         }
