@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.UidBatteryConsumer;
 import android.os.health.HealthStats;
 import android.os.health.HealthStatsParceler;
+import android.os.health.ProcessHealthStats;
 import android.os.health.SystemHealthManager;
 import android.os.health.UidHealthStats;
 import android.text.TextUtils;
@@ -45,7 +46,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -55,6 +58,7 @@ import rikka.shizuku.ShizukuBinderWrapper;
 import rikka.shizuku.SystemServiceHelper;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static com.kaedea.mediastore.dualappcompat.home.InternalUtils.sortMapByValue;
 
 public class SystemApiCallActivity extends AppCompatActivity {
     public static final String BATTERY_STATS_SERVICE = "batterystats";
@@ -236,8 +240,7 @@ public class SystemApiCallActivity extends AppCompatActivity {
             // HealthStats
             sb.append("\n-----");
             if (mChecker.isChecked()) {
-                long procStatTopMs = 0, fgActivityMs = 0;
-                long mobileRadioActiveMs = 0, mobileIdleMs = 0, mobileRxMs = 0, mobileTxMs = 0;
+
                 HealthStats healthStats = null;
                 if (byShizuku) {
                     IBatteryStats batteryStats = BATTERY_STATS_MANAGER.get();
@@ -252,14 +255,99 @@ public class SystemApiCallActivity extends AppCompatActivity {
 
                 if (healthStats != null) {
                     if ("UidHealthStats".equals(healthStats.getDataType())) {
+                        long procStatTopMs = 0, fgActivityMs = 0;
                         if (healthStats.hasTimer(UidHealthStats.TIMER_PROCESS_STATE_TOP_MS)) {
                             procStatTopMs = healthStats.getTimerTime(UidHealthStats.TIMER_PROCESS_STATE_TOP_MS);
                         }
                         if (healthStats.hasTimer(UidHealthStats.TIMER_FOREGROUND_ACTIVITY)) {
                             fgActivityMs = healthStats.getTimerTime(UidHealthStats.TIMER_FOREGROUND_ACTIVITY);
                         }
+                        sb.append("\nHealthStats:").append("\nprocess_state_top=");
+                        formatTimeMs(sb, procStatTopMs);
+                        sb.append("\nforeground_activity=");
+                        formatTimeMs(sb, fgActivityMs);
+
+                        long cpuSysTimeMs = 0, cpuUsrTimeMs = 0;
+                        if (healthStats.hasMeasurement(UidHealthStats.MEASUREMENT_SYSTEM_CPU_TIME_MS)) {
+                            cpuSysTimeMs = healthStats.getMeasurement(UidHealthStats.MEASUREMENT_SYSTEM_CPU_TIME_MS);
+                        }
+                        if (healthStats.hasMeasurement(UidHealthStats.MEASUREMENT_SYSTEM_CPU_TIME_MS)) {
+                            cpuUsrTimeMs = healthStats.getMeasurement(UidHealthStats.MEASUREMENT_USER_CPU_TIME_MS);
+                        }
+                        sb.append("\nCpu:").append("\nsystem_cpu_time_ms=");
+                        formatTimeMs(sb, cpuSysTimeMs);
+                        sb.append("\nuser_cpu_time_ms=");
+                        formatTimeMs(sb, cpuUsrTimeMs);
+                        if (healthStats.hasStats(UidHealthStats.STATS_PROCESSES)) {
+                            long cpuBase = 0L, startBase = 0L, fgBase = 0L;
+                            Map<String, HealthStats> stats = healthStats.getStats(UidHealthStats.STATS_PROCESSES);
+                            for (Map.Entry<String, HealthStats> entry : stats.entrySet()) {
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS)) {
+                                    cpuBase += entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS);
+                                }
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS)) {
+                                    cpuBase += entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS);
+                                }
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_STARTS_COUNT)) {
+                                    startBase += entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_STARTS_COUNT);
+                                }
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_FOREGROUND_MS)) {
+                                    fgBase += entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_FOREGROUND_MS);
+                                }
+                            }
+
+                            Map<String, HealthStats> sortedMap = sortMapByValue(new HashMap<>(stats), (left, right) -> {
+                                long sumLeft = 0;
+                                if (left.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS)) {
+                                    sumLeft += left.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS);
+                                }
+                                if (left.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS)) {
+                                    sumLeft += left.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS);
+                                }
+                                long sumRight = 0;
+                                if (right.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS)) {
+                                    sumRight += right.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS);
+                                }
+                                if (right.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS)) {
+                                    sumRight += right.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS);
+                                }
+                                long minus = sumLeft - sumRight;
+                                if (minus == 0) return 0;
+                                if (minus > 0) return -1;
+                                return 1;
+                            });
+
+                            for (Map.Entry<String, HealthStats> entry : sortedMap.entrySet()) {
+                                String procName = entry.getKey();
+                                if (procName.equals(pkgName)) {
+                                    procName = "main";
+                                } else if (procName.contains(":")) {
+                                    procName = procName.substring(procName.lastIndexOf(":") + 1);
+                                }
+                                long cpuTimeMs = 0L, startCount = 0L, fgTimeMs = 0L;
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS)) {
+                                    cpuTimeMs += entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_SYSTEM_TIME_MS);
+                                }
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS)) {
+                                    cpuTimeMs += entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_USER_TIME_MS);
+                                }
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_STARTS_COUNT)) {
+                                    startBase = entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_STARTS_COUNT);
+                                }
+                                if (entry.getValue().hasMeasurement(ProcessHealthStats.MEASUREMENT_FOREGROUND_MS)) {
+                                    fgTimeMs = entry.getValue().getMeasurement(ProcessHealthStats.MEASUREMENT_FOREGROUND_MS);
+                                }
+                                sb.append("\n - ").append(procName)
+                                        .append(": time=").append(cpuBase > 0 ? (long) (cpuTimeMs * 100f / cpuBase) + "%" : "N/A")
+                                        .append(", start=").append(startCount)
+                                        .append(", fg=").append(fgBase > 0 ? (long) (fgTimeMs * 100f / fgBase) + "%" : "N/A");
+
+                            }
+                        }
+
+                        long mobileRadioActiveMs = 0, mobileIdleMs = 0, mobileRxMs = 0, mobileTxMs = 0;
                         if (healthStats.hasTimer(UidHealthStats.TIMER_MOBILE_RADIO_ACTIVE)) {
-                            mobileRadioActiveMs = healthStats.getTimerTime(UidHealthStats.TIMER_MOBILE_RADIO_ACTIVE);
+                            mobileRadioActiveMs = healthStats.getTimerTime(UidHealthStats.TIMER_MOBILE_RADIO_ACTIVE) / 1000L;
                         }
                         if (healthStats.hasMeasurement(UidHealthStats.MEASUREMENT_MOBILE_IDLE_MS)) {
                             mobileIdleMs = healthStats.getMeasurement(UidHealthStats.MEASUREMENT_MOBILE_IDLE_MS);
@@ -270,22 +358,16 @@ public class SystemApiCallActivity extends AppCompatActivity {
                         if (healthStats.hasMeasurement(UidHealthStats.MEASUREMENT_MOBILE_TX_MS)) {
                             mobileTxMs = healthStats.getMeasurement(UidHealthStats.MEASUREMENT_MOBILE_TX_MS);
                         }
+                        sb.append("\nMobileRadio:").append("\nmobile_radio_active=");
+                        formatTimeMs(sb, mobileRadioActiveMs);
+                        sb.append("\nmobile_idle_ms=");
+                        formatTimeMs(sb, mobileIdleMs);
+                        sb.append("\nmobile_rx_ms=");
+                        formatTimeMs(sb, mobileRxMs);
+                        sb.append("\nmobile_tx_ms=");
+                        formatTimeMs(sb, mobileTxMs);
                     }
                 }
-
-                sb.append("\nHealthStats:").append("\nprocess_state_top=");
-                formatTimeMs(sb, procStatTopMs);
-                sb.append("\nforeground_activity=");
-                formatTimeMs(sb, fgActivityMs);
-
-                sb.append("\nMobileRadio:").append("\nmobile_radio_active=");
-                formatTimeMs(sb, mobileRadioActiveMs);
-                sb.append("\nmobile_idle_ms=");
-                formatTimeMs(sb, mobileIdleMs);
-                sb.append("\nmobile_rx_ms=");
-                formatTimeMs(sb, mobileRxMs);
-                sb.append("\nmobile_tx_ms=");
-                formatTimeMs(sb, mobileTxMs);
 
                 sb.append("\n");
             } else {
