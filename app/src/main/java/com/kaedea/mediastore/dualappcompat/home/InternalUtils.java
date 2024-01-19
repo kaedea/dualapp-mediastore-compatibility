@@ -11,6 +11,13 @@ import android.util.TypedValue;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * internal utils (˃◡˂)
  * do not use this utils in other modules.
@@ -45,5 +52,16 @@ public class InternalUtils {
         if (!TextUtils.isEmpty(msg)) {
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public static <K, V> Map<K, V> sortMapByValue(Map<K, V> map, Comparator<? super Map.Entry<K, V>> comparator) {
+        List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        Collections.sort(list, comparator);
+
+        Map<K, V> result = new LinkedHashMap<>();
+        for (Map.Entry<K, V> entry : list) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
     }
 }
