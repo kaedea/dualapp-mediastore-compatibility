@@ -20,7 +20,7 @@ Also run the smoking tests for Android's **Scoped Storage** Feature.
 > adb shell pm install -r -t --user <user_id> /data/local/tmp/android.apk
 
 3. Clears
-> # delete profile user after tests
+> \# delete profile user after tests
 > adb -d shell pm list users  
 > adb -d shell pm remove-user <user_id>             
 
