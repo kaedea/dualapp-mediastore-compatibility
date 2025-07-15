@@ -17,7 +17,12 @@ Also run the smoking tests for Android's **Scoped Storage** Feature.
 2. Install apk to Profile
 
 > adb push <apk_path> /data/local/tmp/android.apk  
-> adb shell pm install -r -t --user <user_id> /data/local/tmp/android.apk  
+> adb shell pm install -r -t --user <user_id> /data/local/tmp/android.apk
+
+3. Clears
+> # delete profile user after tests
+> adb -d shell pm list users  
+> adb -d shell pm remove-user <user_id>             
 
 ## Test Cases
 
